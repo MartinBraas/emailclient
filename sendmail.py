@@ -26,6 +26,7 @@ server.connect(smtpserv, port_w_tls)
 server.ehlo()
 server.starttls()
 server.ehlo()
+
 #Login process. Recommended to save login data in encrpyted text file,
 # which upon loading gets decrpyted and used
 #Something we could consider for the UI to forward to the backend

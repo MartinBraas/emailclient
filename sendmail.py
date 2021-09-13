@@ -1,38 +1,51 @@
 import smtplib
 
+# Gudie: https://www.youtube.com/watch?v=mWZYn5I_jkY
+
 #None essential importations for different purposes
 from email import encoders
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 
+# Regulate mail to send from, and mail to send to
+sendfrom = 'martin.hatting@hotmail.com'
+sendto = 'koentimmy@hotmail.com'
+
+# SMTP SERVER
+smtpserv = "smtp-mail.outlook.com"
+port_w_tls = 587
+port = 25
+
 #smtp.gmail.com is the google smtp server. Change depending on provider
-server = smtplib.SMTP('smtp-mail.outlook.com', 25)
-server.connect("smtp-mail.outlook.com", 465)
-#587
+server = smtplib.SMTP(smtpserv, port)
+server.connect(smtpserv, port_w_tls)
+#587 // 465
 
 #Starts the process
 server.ehlo()
-server.starttls
+server.starttls()
 server.ehlo()
 #Login process. Recommended to save login data in encrpyted text file,
 # which upon loading gets decrpyted and used
 #Something we could consider for the UI to forward to the backend
-server.login('martin.hatting@hotmail.com', 'rasmus01')
+#server.login('martin.hatting@hotmail.com', 'password')
 
-#doing it from text file, is:
+# doing it from text file, is:
 #with open('password.txt', 'r') as f:
 #    password = f.read()
-#
-#server.login('mail@mail.com', password)
 
-msg = MIMEMultipart
+password = input("Enter password for mail\n")
+
+server.login(sendfrom, password)
+
+msg = MIMEMultipart()
 msg['From'] = 'Martin Braas'
 msg['To'] = 'koentimmy@hotmail.com'
 msg['Subject'] = 'Just a test'
 
 with open('message.txt', 'r') as f:
-    message = f.read
+    message = f.read()
 
 msg.attach(MIMEText(message, 'plain'))
 
@@ -49,6 +62,6 @@ p.add_header('Content-Disposition', f'attachment; filename={filename}')
 msg.attach(p)
 
 text = msg.as_string()
-server.sendmail('martin.hatting@hotmail.com', 'koentimmy@hotmail.com', text)
+server.sendmail(sendfrom, sendto, text)
 
 server.quit()

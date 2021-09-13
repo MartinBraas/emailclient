@@ -64,4 +64,5 @@ msg.attach(p)
 text = msg.as_string()
 server.sendmail(sendfrom, sendto, text)
 
+#Exiting server connection
 server.quit()

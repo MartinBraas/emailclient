@@ -11,7 +11,7 @@ class Server:
         self.port_tls = port_w_tls
         self.port = port
 
-        self.server = smtplib.SMTP()
+        self.server = smtplib.SMTP(smtpserv, port_w_tls, port)
 
     def connect(self):
         "Connect to the mail server"
@@ -26,7 +26,7 @@ class Server:
         "Log into the mail server"
         self.server.login(email, password)
 
-    def send(self, sender, reciepient, email):
+    def send(self, sender, reciepient, emailbody):
         "Send email through mailserver"
         self.server.sendmail(sender, reciepient, email)
 

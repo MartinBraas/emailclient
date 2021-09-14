@@ -19,7 +19,7 @@ class Email:
         self.msg['To'] = recipient_email
 
     def setSubject(self, text):
-        "Set the subjcet of the email"
+        "Set the subject of the email"
         self.msg['Subject'] = text
 
     def setBody(self, text, type='plain'):

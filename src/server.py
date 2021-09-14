@@ -28,7 +28,7 @@ class Server:
 
     def send(self, sender, reciepient, emailbody):
         "Send email through mailserver"
-        self.server.sendmail(sender, reciepient, email)
+        self.server.sendmail(sender, reciepient, emailbody)
 
     def quit(self):
         "Quit the server"

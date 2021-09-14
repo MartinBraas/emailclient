@@ -11,34 +11,6 @@ root.configure(bg="purple")
 username_value = "a"
 password_value = "b"
 
-#How to send a mail and server config
-def sendemail():
-    print("letsgo")
-    # SMTP SERVER
-    smtpserv = "smtp-mail.outlook.com"
-    port_w_tls = 587
-    port = 25
-
-    server = sv.Server(smtpserv, port_w_tls, port)
-    server.connect()
-
-    email = em.Email()
-    with open('../message.txt', 'r') as f:
-        message = f.read()
-    email.setBody(message)
-
-    email.setRecipient('Martin 2', 'koentimmy@hotmail.com')
-
-    email.setSubject('Din mor')
-
-    print("Input password here\n")
-    pwd = getpass()
-    server.login('martin.hatting@hotmail.com', pwd)
-
-    server.send('martin.hatting@hotmail.com', 'koentimmy@hotmail.com', email.getString())
-
-    server.quit()
-
 #function to get user input from entry widget
 def save():
     global username_value, password_value

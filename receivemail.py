@@ -3,12 +3,14 @@ import email
 from email.header import decode_header
 import webbrowser
 import os
+from getpass import getpass
 
 # https://www.thepythoncode.com/article/reading-emails-in-python
 
 # Credentials
 mail = "martin.hatting@hotmail.com"
-password = input("Write password here \n")
+print("Write password here")
+password = getpass()
 imapserv = "imap-mail.outlook.com"
 port = 993
 

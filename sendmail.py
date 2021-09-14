@@ -7,10 +7,14 @@ from email import encoders
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
+from getpass import getpass
 
 # Regulate mail to send from, and mail to send to
+
 sendfrom = 'martin.hatting@hotmail.com'
 sendto = 'koentimmy@hotmail.com'
+#sendto = input("Type recipient mail here \n")
+#sendfrom = input("Type mail adress here \n")
 
 # SMTP SERVER
 smtpserv = "smtp-mail.outlook.com"
@@ -36,7 +40,8 @@ server.ehlo()
 #with open('password.txt', 'r') as f:
 #    password = f.read()
 
-password = input("Enter password for mail\n")
+print("Enter password for mail")
+password = getpass()
 
 server.login(sendfrom, password)
 

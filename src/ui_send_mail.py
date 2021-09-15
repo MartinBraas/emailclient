@@ -2,7 +2,15 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import server as sv
 import mail as em
+import variables
 from getpass import getpass
+
+v = variables
+
+# gui_login = GUI_login_page
+# smtpserv = gui_login.smtpserv
+# port_w_tls = gui_login.port_w_tls
+# port = gui_login.port
 
 root = tk.Tk()
 root.title("Skrumpen Mail")
@@ -13,11 +21,8 @@ root.geometry("1920x1080")
 def sendemail():
     print("letsgo")
     # SMTP SERVER
-    smtpserv = "smtp-mail.outlook.com"
-    port_w_tls = 587
-    port = 25
 
-    server = sv.Server(smtpserv, port_w_tls, port)
+    server = sv.Server(v.smtp_serv, v.port_w_tls, v.port)
     server.connect()
 
     email = em.Email()
@@ -29,17 +34,16 @@ def sendemail():
 
     email.setSubject('Din mor')
 
-    print("Input password here\n")
-    pwd = getpass()
-    server.login('martin.hatting@hotmail.com', pwd)
+    server.login(v.email_adress, v.email_password)
 
-    server.send('martin.hatting@hotmail.com', 'koentimmy@hotmail.com', email.getString())
+    server.send(v.email_adress, 'koentimmy@hotmail.com', email.getString())
 
     server.quit()
 
 def function_calls():
-    sendemail()
     root.destroy()
+    sendemail()
+    
 
 page = tk.Frame(root)
 logo = Image.open('../images/logo.png')

@@ -12,6 +12,7 @@ root.geometry("1920x1080")
 def nextPage():
     root.destroy()
     import ui_send_mail
+    
 
 def function_calls():
     nextPage()

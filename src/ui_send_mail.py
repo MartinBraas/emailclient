@@ -4,12 +4,12 @@ from tkinter.constants import LEFT, RIGHT, TOP, BOTTOM
 import server as sv
 import mail as em
 import variables
-from getpass import getpass
 
 v = variables
 
 recipient_email = "a"
 recipient_name = "a"
+mail_subject = "a"
 
 root = tk.Tk()
 root.title("Skrumpen Mail")
@@ -30,8 +30,8 @@ def sendemail():
     email.setBody(message)
     
     email.setRecipient(recipient_name, recipient_email)
-
-    email.setSubject('Din mor')
+    
+    email.setSubject(mail_subject)
 
     server.login(v.email_adress, v.email_password)
 
@@ -40,9 +40,10 @@ def sendemail():
     server.quit()
 
 def save():
-    global recipient_email, recipient_name
+    global recipient_email, recipient_name, mail_subject
     recipient_email = recipient_mail_entry.get()
     recipient_name = recipient_name_entry.get()
+    mail_subject = subject_entry.get()
 
 def NextUI():
     root.destroy()
@@ -70,6 +71,12 @@ recipient_mail_label = tk.Label(root, text= "Recipient Email Adress", fg="white"
 recipient_mail_label.pack(pady=10, side=TOP)
 recipient_mail_entry = tk.Entry(root, width=40, borderwidth=5, bg="orange")
 recipient_mail_entry.pack(side=TOP)
+
+# Email subject
+subject_label = tk.Label(root, text= "Email Subject", fg="white", bg="purple")
+subject_label.pack(pady=10, side=TOP)
+subject_entry = tk.Entry(root, width=40, borderwidth=5, bg="orange")
+subject_entry.pack(side=TOP)
 
 # Send email button
 enter = tk.Button(root, text="Send", padx=10, pady=5, fg="white", bg="orange", command=function_calls)

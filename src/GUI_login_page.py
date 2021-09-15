@@ -3,7 +3,6 @@ from tkinter.constants import LEFT, RIGHT
 from PIL import Image, ImageTk
 import server as sv
 import mail as em
-from getpass import getpass
 import variables
 
 v = variables
@@ -12,6 +11,7 @@ root = tk.Tk()
 root.title("Login")
 root.configure(bg="purple")
 
+# Variable initialization
 username_value = "a"
 password_value = "b"
 
@@ -32,7 +32,6 @@ def nextPage():
     root.destroy()
     import ui_page
     
-
 def function_call():
     #sendemail()
     save()
@@ -45,7 +44,6 @@ def outlook_smtp():
 
 def gmail_smtp():
     v.choose_smtp(1)
-
 
 #logo
 page = tk.Frame(root)

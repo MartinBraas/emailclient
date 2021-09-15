@@ -2,7 +2,6 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import server as sv
 import mail as em
-from getpass import getpass
 
 root = tk.Tk()
 root.title("Skrumpen Mail")

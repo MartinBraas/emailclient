@@ -9,6 +9,7 @@ root.title("Skrumpen Mail")
 root.configure(bg="purple")
 root.geometry("1920x1080")
 root.state("zoomed")
+root.iconbitmap('../images/small_skrump_icon.ico')
 
 # Functions for changing to the next UI page
 def nextPage():
@@ -28,7 +29,7 @@ logo_label.image = logo
 logo_label.pack( pady=10)
 
 # Button for login
-enter = tk.Button(page, text="Send Email", padx=10, pady=5, fg="white", bg="orange", command=function_calls)
+enter = tk.Button(root, text="Send Email", padx=10, pady=5, fg="white", bg="orange", command=function_calls)
 enter.pack(pady=30)
 
 # Function for stopping UI page

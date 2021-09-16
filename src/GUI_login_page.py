@@ -60,7 +60,7 @@ logo = ImageTk.PhotoImage(logo)
 logo_label = tk.Label(image=logo)
 logo_label.image = logo
 logo_label.pack(pady=10)
-#root.iconbitmap('../images/small_skrump_icon.ico') #change
+root.iconbitmap('../images/small_skrump_icon.ico')
 
 # Username label and entry
 username_label = tk.Label(root, text= "E-mail", fg="white", bg="purple")

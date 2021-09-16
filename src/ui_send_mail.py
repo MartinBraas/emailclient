@@ -18,6 +18,7 @@ root.title("Skrumpen Mail")
 root.configure(bg="purple")
 root.geometry("1920x1080")
 root.state("zoomed")
+root.iconbitmap('../images/small_skrump_icon.ico')
 
 # Function for sending mails
 def sendemail():

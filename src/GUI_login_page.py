@@ -30,7 +30,7 @@ def print_value():
 
 def smtp():
     if "gmail" in username_value:
-        v.choose_smtp(1)
+        v.choose_smtp(1, " ", 0)
     elif "outlook" in username_value or "hotmail" in username_value or "live" in username_value:
         v.choose_smtp(0, " ", 0)
 

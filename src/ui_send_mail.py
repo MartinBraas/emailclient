@@ -21,7 +21,7 @@ root.geometry("1920x1080")
 def sendemail():
     #print("letsgo")
     # SMTP SERVER
-
+    print(v.smtp_serv, v.port, v.port_w_tls)
     server = sv.Server(v.smtp_serv, v.port_w_tls, v.port)
     server.connect()
 

@@ -45,6 +45,10 @@ def outlook_smtp():
 def gmail_smtp():
     v.choose_smtp(1)
 
+def advanced_tab():
+    root.destroy()
+    import advanced
+
 #logo
 page = tk.Frame(root)
 logo = Image.open('../images/logo.png')
@@ -79,6 +83,10 @@ gmail.pack(side=LEFT)
 # Button for login
 enter = tk.Button(root, text="Login", padx=10, pady=5, bg="orange", command=function_call)
 enter.pack(pady=30)
+
+# Button for Advanced tab
+advanced = tk.Button(root, text="Advanced", padx=10, pady=5, bg="orange", command=advanced_tab)
+advanced.pack(pady=30)
 
 #image=logo1
 

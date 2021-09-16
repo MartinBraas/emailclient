@@ -23,7 +23,7 @@ logo = Image.open('../images/logo.png')
 logo = ImageTk.PhotoImage(logo)
 logo_label = tk.Label(image=logo)
 logo_label.image = logo
-logo_label.pack(pady=10)
+logo_label.pack( pady=10)
 
 # # Username label and entry
 # username_label = tk.Label(root, text= "E-mail", fg="white", bg="purple")
@@ -38,7 +38,8 @@ logo_label.pack(pady=10)
 # password_entry.pack(pady=5)
 
 # Button for login
-enter = tk.Button(root, text="Send Email", padx=10, pady=5, fg="white", bg="orange", command=function_calls)
+enter = tk.Button(page, text="Send Email", padx=10, pady=5, fg="white", bg="orange", command=function_calls)
 enter.pack(pady=30)
+
 
 root.mainloop()

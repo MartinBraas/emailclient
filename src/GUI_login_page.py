@@ -63,6 +63,7 @@ logo = ImageTk.PhotoImage(logo)
 logo_label = tk.Label(image=logo)
 logo_label.image = logo
 logo_label.pack(pady=10)
+#root.iconbitmap('../images/small_skrump_icon.ico') #change
 
 logo1 = Image.open('../images/icon_png-removebg-preview.png')
 logo1 = ImageTk.PhotoImage(logo1)

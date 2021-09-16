@@ -90,7 +90,7 @@ subject_entry.pack(side=TOP)
 body_label = tk.Label(root, text= "Email body", fg="white", bg="purple")
 body_label.pack(pady=10)
 body_entry = tk.Entry(root, width=100, borderwidth=5, bg="orange")
-body_entry.pack(pady=10)
+body_entry.pack(pady=10, ipady=50)
 
 # Send email button
 enter = tk.Button(root, text="Send", padx=10, pady=5, fg="white", bg="orange", command=function_calls)

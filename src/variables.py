@@ -1,14 +1,12 @@
 
+# Variable initialization
 smtp_serv = "a"
 port_w_tls = 0
 port = 0
-
 email_adress = "a"
 email_password = "a"
 
-#advanced_smtp = "a"
-#advanced_port = 0
-
+# State machine function, for choosing SMTP server
 def choose_smtp(number, advanced_smtp, advanced_port):
     global smtp_serv, port_w_tls, port
     if number == 0:
@@ -25,6 +23,7 @@ def choose_smtp(number, advanced_smtp, advanced_port):
         port = 25
     return smtp_serv, port_w_tls, port
 
+# Function for passing login credentials from login UI page
 def load_login(email_adr, email_pwd):
     global email_adress, email_password
     email_adress = email_adr

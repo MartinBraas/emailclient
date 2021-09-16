@@ -5,30 +5,34 @@ import server as sv
 import mail as em
 import variables
 
+# Initialization
 v = variables
-
 root = tk.Tk()
 root.title("Advanced")
 root.configure(bg="purple")
 
+# Variable initialization
 advanced_smtp = "a"
 advanced_port = 0
 
+# Saves variables passed from UI, to pass to other functions
 def save_advanced():
     global advanced_smtp, advanced_port
     advanced_smtp = advanced_smtp_entry.get()
     advanced_port = advanced_port_entry.get()
 
+# Next page function. Open next UI page
 def next():
     root.destroy()
     import GUI_login_page
 
+# executes functions at push of button
 def save_settings():
     save_advanced()
     v.choose_smtp(2, advanced_smtp, advanced_port)
     next()
 
-#logo
+# Start of UI page
 page = tk.Frame(root)
 logo = Image.open('../images/logo.png')
 logo = ImageTk.PhotoImage(logo)

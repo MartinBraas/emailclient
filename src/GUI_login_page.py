@@ -69,11 +69,11 @@ password_entry = tk.Entry(root, width=40, borderwidth=5, bg="orange", show="*")
 password_entry.pack(pady=5)
 
 # Button for picking Outlook SMTP Servers
-outlook = tk.Button(root, text="OUTLOOK", padx=10, pady=5, bg="orange", command=outlook_smtp)
+outlook = tk.Checkbutton(root, text="OUTLOOK", padx=10, pady=5, bg="orange", command=outlook_smtp)
 outlook.pack(side=RIGHT)
 
 # Button for picking GMAIL SMTP Servers
-gmail = tk.Button(root, text="GMAIL", padx=10, pady=5, bg="orange", command=gmail_smtp)
+gmail = tk.Checkbutton(root, text="GMAIL", padx=10, pady=5, bg="orange", command=gmail_smtp)
 gmail.pack(side=LEFT)
 
 # Button for login

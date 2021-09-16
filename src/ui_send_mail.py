@@ -5,20 +5,21 @@ import server as sv
 import mail as em
 import variables
 
+# Variable initialization
 v = variables
-
 recipient_email = "a"
 recipient_name = "a"
 mail_subject = "a"
 mail_body = "a"
 
+# UI initialization
 root = tk.Tk()
 root.title("Skrumpen Mail")
 root.configure(bg="purple")
 root.geometry("1920x1080")
 root.state("zoomed")
 
-#How to send a mail and server config
+# Function for sending mails
 def sendemail():
     #print("letsgo")
     # SMTP SERVER
@@ -41,6 +42,7 @@ def sendemail():
 
     server.quit()
 
+# Function for saving data entries from the UI
 def save():
     global recipient_email, recipient_name, mail_subject, mail_body
     recipient_email = recipient_mail_entry.get()
@@ -48,20 +50,24 @@ def save():
     mail_subject = subject_entry.get()
     mail_body = body_entry.get()
 
+# Function for shutting down UI. Can be updated to go to another UI page
 def NextUI():
     root.destroy()
 
+# Function for writing text from UI to text file, to be send as body of email
 def writeBody():
     File_object = open(r"../messages.txt", 'w')
     File_object.write(mail_body)
     File_object.close()
 
+# Function for calling numerous functions by push of button
 def function_calls():
     save()
     writeBody()
     sendemail()
     NextUI()
-    
+
+# UI initialization   
 page = tk.Frame(root)
 logo = Image.open('../images/logo.png')
 logo = ImageTk.PhotoImage(logo)
@@ -97,4 +103,5 @@ body_entry.pack(pady=10, ipady=50)
 enter = tk.Button(root, text="Send", padx=10, pady=5, fg="white", bg="orange", command=function_calls)
 enter.pack(pady=20)
 
+# Stop UI page
 root.mainloop()

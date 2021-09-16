@@ -5,8 +5,8 @@ import server as sv
 import mail as em
 import variables
 
+# Initialization
 v = variables
-
 root = tk.Tk()
 root.title("Login")
 root.configure(bg="purple")
@@ -14,7 +14,6 @@ root.configure(bg="purple")
 # Variable initialization
 username_value = "a"
 password_value = "b"
-
 smtpserv = "a"
 port_w_tls = 0
 port = 0
@@ -28,16 +27,19 @@ def save():
 def print_value():
     print("Username: ", username_value, "\nPassword: ", password_value)
 
+#SMTP server settings autodetect GMAIL/OUTLOOK
 def smtp():
-    if "gmail" in username_value:
+    if "@gmail" in username_value:
         v.choose_smtp(1, " ", 0)
-    elif "outlook" in username_value or "hotmail" in username_value or "live" in username_value:
+    elif "@outlook" in username_value or "@hotmail" in username_value or "@live" in username_value:
         v.choose_smtp(0, " ", 0)
 
+# Moves to next UI page
 def nextPage():
     root.destroy()
     import ui_page
-    
+
+# Calls number of functions at push of button
 def function_call():
     #sendemail()
     save()
@@ -46,26 +48,18 @@ def function_call():
     v.load_login(username_value, password_value)
     nextPage()
 
-# def outlook_smtp():
-#     v.choose_smtp(0)
-
-# def gmail_smtp():
-#     v.choose_smtp(1)
-
+# Opens advanced tab
 def advanced_tab():
     root.destroy()
     import advanced
 
-#logo
+# Start of UI page
 page = tk.Frame(root)
 logo = Image.open('../images/logo.png')
 logo = ImageTk.PhotoImage(logo)
 logo_label = tk.Label(image=logo)
 logo_label.image = logo
 logo_label.pack(pady=10)
-
-logo1 = Image.open('../images/icon_png-removebg-preview.png')
-logo1 = ImageTk.PhotoImage(logo1)
 
 # Username label and entry
 username_label = tk.Label(root, text= "E-mail", fg="white", bg="purple")
@@ -80,14 +74,7 @@ password_label.pack(pady=10)
 password_entry = tk.Entry(root, width=40, borderwidth=5, bg="orange", show="*")
 password_entry.pack(pady=5)
 
-# # Button for picking Outlook SMTP Servers
-# outlook = tk.Checkbutton(root, text="OUTLOOK", padx=10, pady=5, bg="orange", command=outlook_smtp)
-# outlook.pack(side=RIGHT)
-
-# # Button for picking GMAIL SMTP Servers
-# gmail = tk.Checkbutton(root, text="GMAIL", padx=10, pady=5, bg="orange", command=gmail_smtp)
-# gmail.pack(side=LEFT)
-
+# Auto detect label
 info = tk.Label(root, text="GMAIL and Outlook/Hotmail/Live is autodetected", pady=5, fg="white", bg="purple")
 info.pack(pady=10)
 
@@ -99,6 +86,5 @@ enter.pack(pady=30)
 advanced = tk.Button(root, text="Advanced", padx=10, pady=5, bg="orange", command=advanced_tab)
 advanced.pack(pady=30)
 
-#image=logo1
-
+#End of UI page
 root.mainloop()

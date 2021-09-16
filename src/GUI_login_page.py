@@ -61,6 +61,7 @@ username_label = tk.Label(root, text= "E-mail", fg="white", bg="purple")
 username_label.pack(pady=10)
 username_entry = tk.Entry(root, width=40, borderwidth=5, bg="orange")
 username_entry.pack(pady=5)
+username_entry.focus_force()
 
 # Password label and entry
 password_label = tk.Label(root, text= "Password", fg="white", bg="purple")

@@ -7,6 +7,8 @@ root = tk.Tk()
 root.title("Skrumpen Mail")
 root.configure(bg="purple")
 root.geometry("1920x1080")
+root.state("zoomed")
+
 
 def nextPage():
     root.destroy()

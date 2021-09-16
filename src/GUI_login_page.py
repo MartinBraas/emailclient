@@ -28,6 +28,12 @@ def save():
 def print_value():
     print("Username: ", username_value, "\nPassword: ", password_value)
 
+def smtp():
+    if "gmail" in username_value:
+        v.choose_smtp(1)
+    elif "outlook" in username_value or "hotmail" in username_value or "live" in username_value:
+        v.choose_smtp(0, " ", 0)
+
 def nextPage():
     root.destroy()
     import ui_page
@@ -36,14 +42,15 @@ def function_call():
     #sendemail()
     save()
     #print_value()
+    smtp()
     v.load_login(username_value, password_value)
     nextPage()
 
-def outlook_smtp():
-    v.choose_smtp(0)
+# def outlook_smtp():
+#     v.choose_smtp(0)
 
-def gmail_smtp():
-    v.choose_smtp(1)
+# def gmail_smtp():
+#     v.choose_smtp(1)
 
 def advanced_tab():
     root.destroy()
@@ -72,13 +79,16 @@ password_label.pack(pady=10)
 password_entry = tk.Entry(root, width=40, borderwidth=5, bg="orange", show="*")
 password_entry.pack(pady=5)
 
-# Button for picking Outlook SMTP Servers
-outlook = tk.Checkbutton(root, text="OUTLOOK", padx=10, pady=5, bg="orange", command=outlook_smtp)
-outlook.pack(side=RIGHT)
+# # Button for picking Outlook SMTP Servers
+# outlook = tk.Checkbutton(root, text="OUTLOOK", padx=10, pady=5, bg="orange", command=outlook_smtp)
+# outlook.pack(side=RIGHT)
 
-# Button for picking GMAIL SMTP Servers
-gmail = tk.Checkbutton(root, text="GMAIL", padx=10, pady=5, bg="orange", command=gmail_smtp)
-gmail.pack(side=LEFT)
+# # Button for picking GMAIL SMTP Servers
+# gmail = tk.Checkbutton(root, text="GMAIL", padx=10, pady=5, bg="orange", command=gmail_smtp)
+# gmail.pack(side=LEFT)
+
+info = tk.Label(root, text="GMAIL and Outlook/Hotmail/Live is autodetected", pady=5, fg="white", bg="purple")
+info.pack(pady=10)
 
 # Button for login
 enter = tk.Button(root, text="Login", padx=10, pady=5, bg="orange", command=function_call)

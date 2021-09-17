@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 tester
+=======
+Bitch
+>>>>>>> 2ab35fcb2e37f72542659006144dfa1aa5f12c1a

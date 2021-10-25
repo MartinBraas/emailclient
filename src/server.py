@@ -9,14 +9,20 @@ class Server:
     """
 
     def __init__(self, smtpserv, imapserv, port_w_tls, port) -> None:
+        global imap_gear
         self.host = smtpserv
-        self.imap_host = imapserv
         self.port_tls = port_w_tls
         self.port = port
 
         self.server = smtplib.SMTP(smtpserv, port_w_tls, port)
-        self.imap = imaplib.IMAP4_SSL(imapserv)
-        self._folders = []
+        
+        #temp solution
+        imap_gear = 0
+        if(imapserv != 0):
+            self.imap = imaplib.IMAP4_SSL(imapserv)
+            self.imap_host = imapserv
+            self._folders = []
+            imap_gear = 1
 
     def connect(self):
         "Connect to the mail server"
@@ -30,7 +36,10 @@ class Server:
     def login(self, email, password):
         "Log into the mail server"
         self.server.login(email, password)
-        self.imap.login(email, password)
+
+        #temp solution
+        if(imap_gear == 1):
+            self.imap.login(email, password)
 
     def _select_folder(self, folder: str):
         f = folder.lower()
@@ -77,6 +86,9 @@ class Server:
     def quit(self):
         "Quit the server"
         self.server.quit()
-        self.imap.close()
-        self.imap.logout()
+
+        #temp solution
+        if (imap_gear == 1):
+            self.imap.close()
+            self.imap.logout()
 

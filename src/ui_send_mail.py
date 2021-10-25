@@ -17,15 +17,15 @@ root = tk.Tk()
 root.title("Skrumpen Mail")
 root.configure(bg="purple")
 root.geometry("1920x1080")
-root.state("zoomed")
-root.iconbitmap('../images/small_skrump_icon.ico')
+#root.state("normal")
+#root.iconbitmap('../images/small_skrump_icon.ico')
 
 # Function for sending mails
 def sendemail():
     #print("letsgo")
     # SMTP SERVER
     print(v.smtp_serv, v.port, v.port_w_tls)
-    server = sv.Server(v.smtp_serv, v.port_w_tls, v.port)
+    server = sv.Server(v.smtp_serv, 0, v.port_w_tls, v.port)
     server.connect()
 
     email = em.Email()

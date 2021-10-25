@@ -31,8 +31,10 @@ def print_value():
 def smtp():
     if "@gmail" in username_value:
         v.choose_smtp(1, " ", 0)
+        v.choose_imap(1, " ", 0)
     elif "@outlook" in username_value or "@hotmail" in username_value or "@live" in username_value:
         v.choose_smtp(0, " ", 0)
+        v.choose_imap(0, " ", 0)
 
 # Moves to next UI page
 def nextPage():
@@ -60,7 +62,7 @@ logo = ImageTk.PhotoImage(logo)
 logo_label = tk.Label(image=logo)
 logo_label.image = logo
 logo_label.pack(pady=10)
-root.iconbitmap('../images/small_skrump_icon.ico')
+#root.iconbitmap('../images/small_skrump_icon.ico')
 
 # Username label and entry
 username_label = tk.Label(root, text= "E-mail", fg="white", bg="purple")

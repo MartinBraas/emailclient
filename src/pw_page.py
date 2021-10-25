@@ -6,7 +6,7 @@ root = tk.Tk()
 root.title("Skrumpen Mail")
 root.configure(bg="purple")
 root.geometry("1920x1080")
-root.state("zoomed")
+#root.state("zoomed")
 
 ## Left panel
 left_panel = tk.PanedWindow(bd=4, relief="raised", bg="orange")

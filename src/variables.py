@@ -6,6 +6,9 @@ port = 0
 email_adress = "a"
 email_password = "a"
 
+imap_serv = "a"
+imap_port = 0
+
 # State machine function, for choosing SMTP server
 def choose_smtp(number, advanced_smtp, advanced_port):
     global smtp_serv, port_w_tls, port
@@ -22,6 +25,19 @@ def choose_smtp(number, advanced_smtp, advanced_port):
         port_w_tls = advanced_port
         port = 25
     return smtp_serv, port_w_tls, port
+
+def choose_imap(number, advanced_imap, advanced_im_port):
+    global imap_serv, imap_port
+    if number == 0:
+        imap_serv = "imap-mail.outlook.com"
+        imap_port = 993
+    elif number == 1:
+        imap_serv = "imap.gmail.com"
+        imap_port = 993
+    elif number == 2:
+        imap_serv = advanced_imap
+        imap_port = advanced_im_port
+    return imap_serv, imap_port
 
 # Function for passing login credentials from login UI page
 def load_login(email_adr, email_pwd):

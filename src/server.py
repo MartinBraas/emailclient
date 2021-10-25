@@ -1,7 +1,7 @@
 import smtplib
 import imaplib
-
-
+import email
+from mail import ServerEmail
 class Server:
     """
     A class encapsulating a mail server
@@ -9,11 +9,13 @@ class Server:
 
     def __init__(self, smtpserv, imapserv, port_w_tls, port) -> None:
         self.host = smtpserv
+        self.imap_host = imapserv
         self.port_tls = port_w_tls
         self.port = port
 
         self.server = smtplib.SMTP(smtpserv, port_w_tls, port)
-        self.imap = imaplib.IMAP4_SSL("imap.gmail.com")
+        self.imap = imaplib.IMAP4_SSL(imapserv)
+        self._folders = []
 
     def connect(self):
         "Connect to the mail server"
@@ -29,84 +31,43 @@ class Server:
         self.server.login(email, password)
         self.imap.login(email, password)
 
+    def _select_folder(self, folder: str):
+        f = folder.lower()
+        if not self._folders:
+            self.get_folders()
+        for x in self._folders:
+            if f in str(x).lower():
+                f = x
+                break
+                
+        return self.imap.select(f)
+
     def fetch(self, limit=10, folder="INBOX"):
         "Fetch emails"
-        status, messages = self.imap.select(folder)
-        limit = min(int(messages[0]), limit)
+        status, message_count = self._select_folder(folder)
+        limit = min(int(message_count[0]), limit)
+        res, messages = self.imap.search(None, 'UNSEEN')
         emails = []
-        for i in range(l):
-            res, msg = self.imap.fetch(str(i), "(RFC822)")
-            emails.append(self._create_email(msg))
+        if res:
+            messages = messages[0].split()
+            for i in range(limit):
+                res, msg = self.imap.fetch(messages[i], "(RFC822)")
+                m = self._create_email(msg)
+                if m:
+                    emails.append(m)
 
         return emails
 
     def _create_email(self, msg):
-        print(msg)
-        return
         for response in msg:
             if isinstance(response, tuple):
                 # parse a bytes email into a message object
                 msg = email.message_from_bytes(response[1])
-                # decode the email subject
-                subject, encoding = decode_header(msg["Subject"])[0]
-                if isinstance(subject, bytes):
-                    # if it's a bytes, decode to str
-                    subject = subject.decode(encoding)
-                # decode email sender
-                From, encoding = decode_header(msg.get("From"))[0]
-                if isinstance(From, bytes):
-                    From = From.decode(encoding)
-                print("Subject:", subject)
-                print("From:", From)
-                # if the email message is multipart
-                if msg.is_multipart():
-                    # iterate over email parts
-                    for part in msg.walk():
-                        # extract content type of email
-                        content_type = part.get_content_type()
-                        content_disposition = str(part.get("Content-Disposition"))
-                        try:
-                            # get the email body
-                            body = part.get_payload(decode=True).decode()
-                        except:
-                            pass
-                        if content_type == "text/plain" and "attachment" not in content_disposition:
-                            # print text/plain emails and skip attachments
-                            print(body)
-                        elif "attachment" in content_disposition:
-                            # download attachment
-                            filename = part.get_filename()
-                            if filename:
-                                folder_name = clean(subject)
-                                if not os.path.isdir(folder_name):
-                                    # make a folder for this email (named after the subject)
-                                    os.mkdir(folder_name)
-                                filepath = os.path.join(folder_name, filename)
-                                # download attachment and save it
-                                open(filepath, "wb").write(part.get_payload(decode=True))
-                else:
-                    # extract content type of email
-                    content_type = msg.get_content_type()
-                    # get the email body
-                    body = msg.get_payload(decode=True).decode()
-                    if content_type == "text/plain":
-                        # print only text email parts
-                        print(body)
-                if content_type == "text/html":
-                    # if it's HTML, create a new HTML file and open it in browser
-                    folder_name = clean(subject)
-                    if not os.path.isdir(folder_name):
-                        # make a folder for this email (named after the subject)
-                        os.mkdir(folder_name)
-                    filename = "index.html"
-                    filepath = os.path.join(folder_name, filename)
-                    # write the file
-                    open(filepath, "w").write(body)
-                    # open in the default browser
-                    webbrowser.open(filepath)
+                return ServerEmail(msg)
 
-    def folders(self):
-        return self.imap.list()
+    def get_folders(self):
+        self._folders = [str(x) for x in self.imap.list()[0]]
+        return self._folders
 
     def send(self, sender, reciepient, emailbody):
         "Send email through mailserver"

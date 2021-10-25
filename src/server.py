@@ -2,6 +2,7 @@ import smtplib
 import imaplib
 import email
 from mail import ServerEmail
+from typing import List
 class Server:
     """
     A class encapsulating a mail server
@@ -42,7 +43,7 @@ class Server:
                 
         return self.imap.select(f)
 
-    def fetch(self, limit=10, folder="INBOX"):
+    def fetch(self, limit=10, folder="INBOX") -> List[ServerEmail]:
         "Fetch emails"
         status, message_count = self._select_folder(folder)
         limit = min(int(message_count[0]), limit)

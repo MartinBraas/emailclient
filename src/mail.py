@@ -19,7 +19,7 @@ class Email:
         self.msg['To'] = recipient_email
 
     def setSubject(self, text):
-        "Set the subject of the email"
+        "Set the subjcet of the email"
         self.msg['Subject'] = text
 
     def setBody(self, text, type='plain'):
@@ -35,4 +35,5 @@ class Email:
         self.msg.attach(p)
 
     def getString(self):
-        self.msg.as_string()
+        return(self.msg.as_string())
+        

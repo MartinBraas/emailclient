@@ -87,8 +87,8 @@ class Server:
         "Quit the server"
         self.server.quit()
 
-        #temp solution
-        if (imap_gear == 1):
-            self.imap.close()
-            self.imap.logout()
+        # #temp solution
+        # if (imap_gear == 1):
+        #     self.imap.close()
+        #     self.imap.logout()
 

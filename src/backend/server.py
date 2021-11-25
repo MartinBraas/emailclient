@@ -1,7 +1,7 @@
 import smtplib
 import imaplib
 import email
-from mail import ServerEmail
+from backend.mail import ServerEmail
 from typing import List
 class Server:
     """

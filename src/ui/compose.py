@@ -1,5 +1,7 @@
 from PySide2.QtWidgets import QHBoxLayout, QPushButton, QTextEdit, QVBoxLayout, QWidget, QLineEdit, QFormLayout, QSpacerItem
 
+from backend import variables
+
 class ComposePage(QWidget):
     def __init__(self, parent = None):
         super().__init__(parent=parent)
@@ -20,7 +22,9 @@ class ComposePage(QWidget):
         layout_widget = QWidget()
         btn_layout = QHBoxLayout(layout_widget)
         layout.addWidget(layout_widget)
+        self.attachment_btn = QPushButton("Add Attachment")
         self.send_btn = QPushButton("Send")
+        btn_layout.addWidget(self.attachment_btn)
         btn_layout.addWidget(self.send_btn)
-        btn_layout.insertStretch(0, 1)
+        btn_layout.insertStretch(1, 1)
 

@@ -1,6 +1,6 @@
 from PySide2.QtWidgets import QHBoxLayout, QPushButton, QTextEdit, QVBoxLayout, QWidget, QLineEdit, QFormLayout, QSpacerItem
 
-from backend import variables
+from backend import variables, server
 
 class ComposePage(QWidget):
     def __init__(self, parent = None):

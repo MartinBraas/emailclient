@@ -45,13 +45,12 @@ class ComposePage(QWidget):
 
     def save(self):
         global recipient_email, recipient_name, mail_subject, mail_body
-        recipient_name = self.to.text()
+        recipient_email = self.to.text()
         recipient_name = self.cc.text()
         mail_subject = self.subject.text()
         mail_body = self.body.toPlainText()
 
     def send_mail(self):
-        print( v. smtp_serv, 0, v.port_w_tls, v.port)
         server = sv.Server(v.smtp_serv, 0, v.port_w_tls, v.port)
         server.connect()
 
@@ -59,7 +58,6 @@ class ComposePage(QWidget):
         with open('../messages.txt', 'r') as f:
             message = f.read()
         email.setBody(message)
-
         email.setRecipient(recipient_name, recipient_email)
         email.setSubject(mail_subject)
         server.login(v.email_adress, v.email_password)

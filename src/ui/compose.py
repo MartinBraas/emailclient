@@ -11,6 +11,7 @@ class ComposePage(QWidget):
         self.subject = QLineEdit()
         self.to = QLineEdit()
         self.cc = QLineEdit()
+        self.cc.text()
         self.body = QTextEdit()
 
         layout.addRow("Subject:", self.subject)

@@ -24,6 +24,7 @@ def choose_smtp(number, advanced_smtp, advanced_port):
         smtp_serv = advanced_smtp
         port_w_tls = advanced_port
         port = 25
+    # print("SMTP server: ", smtp_serv, " // SMTP Port: ", port_w_tls)
     return smtp_serv, port_w_tls, port
 
 def choose_imap(number, advanced_imap, advanced_im_port):

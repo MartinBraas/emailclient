@@ -3,6 +3,7 @@ from PySide2.QtWidgets import QHBoxLayout, QPushButton, QVBoxLayout, QWidget, QL
 from backend import variables
 from backend import server as sv
 from backend import mail as em
+from ui.widgets import QLineEditNumber
 
 v = variables
 
@@ -21,7 +22,7 @@ class LoginPage(QWidget):
         self.password.setEchoMode(QLineEdit.Password)
         self.smtp_serv = QLineEdit(self)
         self.smtp_serv.setMinimumWidth(300)
-        self.port_w_tls = QLineEdit(self)
+        self.port_w_tls = QLineEditNumber(self)
         self.port_w_tls.setMinimumWidth(100)
 
         form_layout.addRow("Email:", self.email)
@@ -45,7 +46,29 @@ class LoginPage(QWidget):
         v_layout.insertStretch(0, 1)
         v_layout.insertStretch(-1, 1)
 
+        #
+        self.email.textChanged.connect(self.on_email_text_change)
+
+    def on_email_text_change(self, txt):
+        smtp_serv = port_w_tls = port = None
+
+        if "@gmail" in txt:
+            smtp_serv, port_w_tls, port = v.choose_smtp(1, " ", 0)
+            v.choose_imap(1, " ", 0)
+        elif "@outlook" in txt or "@hotmail" in txt or "@live" in txt:
+            smtp_serv, port_w_tls, port = v.choose_smtp(0, " ", 0)
+            v.choose_imap(0, " ", 0)
+
+        if smtp_serv:
+            self.smtp_serv.setPlaceholderText(smtp_serv)
+            self.port_w_tls.setPlaceholderText(str(port_w_tls))
+
+        
+
+        
+
     def function_calls(self):
+        return
         self.save_login()
         self.save_smtp()
         # self.tell_em()

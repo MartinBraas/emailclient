@@ -14,6 +14,7 @@ mail_body = "a"
 class ComposePage(QWidget):
     def __init__(self, parent = None):
         super().__init__(parent=parent)
+        self.setWindowTitle("Compose")
 
         layout = QFormLayout(self)
 

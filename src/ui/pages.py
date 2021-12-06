@@ -1,3 +1,4 @@
+from PySide2.QtGui import QCloseEvent
 from PySide2.QtWidgets import QApplication, QMainWindow, QPushButton
 from ui.compose import ComposePage
 from ui.inbox import InboxPage
@@ -9,7 +10,8 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Skrumpen Email Client")
-        self.resize(900, 700)
+        self.resize(1200, 800)
+        self.compose_window = None
 
 
     def login_page(self):
@@ -23,6 +25,15 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(page)
 
     def compose_page(self):
-        page = ComposePage(self)
-        self.setCentralWidget(page)
+        self.compose_window = ComposePage()
+        self.compose_window.resize(1000, 800)
+        self.compose_window.show()
+        # self.setCentralWidget(page)
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        # save work
+
+        if self.compose_window:
+            self.compose_window.close()
+        event.accept()
 

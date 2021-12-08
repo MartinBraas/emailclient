@@ -13,7 +13,7 @@ class Server:
         self.port_tls = port_w_tls
         self.port = port
 
-        self.server = smtplib.SMTP()
+        self.server = smtplib.SMTP(smtpserv)
         
         self.imap = None
         self.imap_host = imapserv

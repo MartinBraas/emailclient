@@ -4,6 +4,7 @@ from backend import variables
 from backend import server as sv
 from backend import mail as em
 from ui.widgets import QLineEditNumber
+import traceback
 
 v = variables
 
@@ -109,6 +110,7 @@ class LoginPage(QWidget):
             v.server.connect()
             return True
         except Exception as e:
+            traceback.print_exc()
             msg = str(e)
             self.login_signal.emit(False, msg)
             self.message_label.setText(msg)
@@ -124,6 +126,7 @@ class LoginPage(QWidget):
             msg = ""
             self.login_signal.emit(True, msg)
         except Exception as e:
+            traceback.print_exc()
             msg = str(e)
             self.login_signal.emit(False, msg)
 

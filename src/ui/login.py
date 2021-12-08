@@ -1,5 +1,5 @@
-from tkinter.constants import E
-from PySide2.QtWidgets import QHBoxLayout, QPushButton, QVBoxLayout, QWidget, QLineEdit, QFormLayout, QSpacerItem
+from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QLineEdit, QFormLayout
+from PySide2.QtCore import Signal
 from backend import variables
 from backend import server as sv
 from backend import mail as em
@@ -8,6 +8,9 @@ from ui.widgets import QLineEditNumber
 v = variables
 
 class LoginPage(QWidget):
+
+    login_signal = Signal(bool, str)
+
     def __init__(self, parent = None):
         super().__init__(parent=parent)
 
@@ -25,6 +28,14 @@ class LoginPage(QWidget):
         self.port_w_tls = QLineEditNumber(self)
         self.port_w_tls.setMinimumWidth(100)
 
+        self.email.setText("")
+        self.email.setPlaceholderText("Email")
+        self.password.setText("")
+        self.password.setPlaceholderText("Password")
+
+        self.message_label = QLabel()
+        self.message_label.setStyleSheet("QLabel { color: red; font-weight: bold; }")
+
         form_layout.addRow("Email:", self.email)
         form_layout.addRow("Password", self.password)
         form_layout.addRow("SMTP Server", self.smtp_serv)
@@ -38,6 +49,7 @@ class LoginPage(QWidget):
 
         v_layout.addLayout(form_layout)
         v_layout.addLayout(loginbtn_layout)
+        v_layout.addWidget(self.message_label)
 
         # center widgets vertically and horizontally
 
@@ -68,9 +80,8 @@ class LoginPage(QWidget):
         
 
     def function_calls(self):
-        return
-        self.save_login()
-        self.save_smtp()
+        if self.save_smtp():
+            self.save_login()
         # self.tell_em()
 
     # def tell_em(self):
@@ -80,7 +91,7 @@ class LoginPage(QWidget):
         # print("Email adress: ", self.email.text(), " // Password: ", self.password.text())
 
     def save_smtp(self):
-        global advanced_smtp, advanced_port
+        email = self.email.text()
         advanced_smtp = self.smtp_serv.text()
         advanced_port = self.port_w_tls.text()
         #Autodetection to be implemented after advanced page
@@ -93,9 +104,27 @@ class LoginPage(QWidget):
         else:
             v.choose_smtp(2, advanced_smtp, advanced_port)
 
+        try:
+            v.server = sv.Server(v.smtp_serv, v.imap_serv, v.port_w_tls, v.port)
+            v.server.connect()
+            return True
+        except Exception as e:
+            msg = str(e)
+            self.login_signal.emit(False, msg)
+            self.message_label.setText(msg)
+            return False
+
     def save_login(self):
-        global email, password
         email = self.email.text()
         password = self.password.text()
         v.load_login(email, password)
-        
+        try:
+            if v.server:
+                v.server.login(email, password)
+            msg = ""
+            self.login_signal.emit(True, msg)
+        except Exception as e:
+            msg = str(e)
+            self.login_signal.emit(False, msg)
+
+        self.message_label.setText(msg)

@@ -1,13 +1,20 @@
 
-from PySide2.QtCore import QModelIndex, QPoint, QRect, QRegExp, QSize
-from PySide2.QtGui import QBrush, QColor, QFont, QPainter, QPen, QRegExpValidator, QStandardItemModel
-from PySide2.QtWidgets import QComboBox, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QListWidget, QMainWindow, QPushButton, QSizePolicy, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextEdit, QVBoxLayout, QWidget
+from typing import List
+from PySide2.QtCore import QModelIndex, QPoint, QRegExp, QSize, Signal, Qt
+from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PySide2.QtGui import QBrush, QColor, QFont, QPainter, QPen, QRegExpValidator, QStandardItem, QStandardItemModel
+from PySide2.QtWidgets import QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QPushButton, QSizePolicy, QStackedWidget, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextBrowser, QVBoxLayout, QWidget
+from backend import server, variables
+from backend.mail import ServerEmail
 
+DataRole = Qt.UserRole + 1
 
 class EmailList(QListView):
     """
     A display for a list of emails
     """
+
+    mail_clicked = Signal(ServerEmail)
 
     def __init__(self, parent = None) -> None:
         super().__init__(parent=parent)
@@ -15,9 +22,33 @@ class EmailList(QListView):
         policy.setHorizontalStretch(1)
         self.setSizePolicy(policy)
         self.setUniformItemSizes(True)
-        self.setModel(QStandardItemModel(5, 1))
+        self._model = QStandardItemModel(0, 1)
+        self.setModel(self._model)
         self.setItemDelegate(MailItemDelagate(self, self.model()))
+        self._load_from = 0
+        self.clicked.connect(self.on_mail_click)
 
+    def on_mail_click(self, idx):
+        d = self._model.data(idx, DataRole)
+        self.mail_clicked.emit(d)
+        print("mail clicked", d)
+
+    def load_more(self, limit=20):
+        if variables.server:
+            items = []
+            emails: List[ServerEmail] = variables.server.fetch(limit=limit, start_from=self._load_from)
+            for e in emails:
+                item = QStandardItem()
+                item.setCheckable(False)
+                item.setEditable(False)
+                item.setData(e, DataRole)
+                items.append(item)
+                self._model.appendRow(item)
+
+    def load(self):
+        self._model.clear()
+        self._load_from = 0
+        self.load_more()
 
 class MailItemDelagate(QStyledItemDelegate):
     """
@@ -33,14 +64,25 @@ class MailItemDelagate(QStyledItemDelegate):
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
 
         if index.column() == 0:
-            mail_item = self.model.data(index);
+            servermail: ServerEmail = self.model.data(index, DataRole);
 
-            unread = True
+            unread = not servermail.is_read()
+
+            padding = 2
 
             # Set the background color
             background = option.palette.highlight() if  (option.state & QStyle.State_Selected) else option.palette.base();
 
             painter.fillRect(option.rect, background);
+
+            painter.save()
+
+            painter.setPen(QPen(QColor(100, 100, 100)))
+            painter.setBrush(QBrush(QColor(100, 100, 200)))
+
+            painter.drawLine(option.rect.x(), option.rect.y()+option.rect.height()-padding, option.rect.x()+option.rect.width(), option.rect.y()+option.rect.height()-padding)
+
+            painter.restore()
 
             titleRect = option.rect;
             titleRect.setX(titleRect.x()+5);
@@ -53,7 +95,7 @@ class MailItemDelagate(QStyledItemDelegate):
             if unread:
                 font.setWeight(QFont.Bold);
             painter.setFont(font);
-            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+23), "Tryg");
+            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+23), servermail.get_recipents().split("<")[0]);
 
             if not unread:
                 font.setWeight(QFont.Normal);
@@ -65,7 +107,7 @@ class MailItemDelagate(QStyledItemDelegate):
 
             # Subject
 
-            excerpt = "Hello world hell world wdgfdfgdfshggfdhfdgh fhfdghdfg fghd"
+            excerpt = servermail.get_subject()
 
             display_width = self.view.size().width() * 0.2
 
@@ -73,17 +115,6 @@ class MailItemDelagate(QStyledItemDelegate):
                 excerpt = excerpt[:int(display_width)-20] + "...";
 
             painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+65), excerpt);
-
-            painter.fillRect(QRect(
-                                    option.rect.x() + option.rect.width() - 60,
-                                    option.rect.y(),
-                                    60,
-                                    option.rect.height()), background);
-
-            painter.setPen(QPen(QColor(100, 100, 100)))
-            painter.setBrush(QBrush(QColor(100, 100, 200)))
-
-            painter.drawLine(option.rect.x(), option.rect.y()+option.rect.height(), option.rect.x()+option.rect.width(), option.rect.y()+option.rect.height())
 
         else:
             return super().paint(painter, option, index)
@@ -104,6 +135,7 @@ class EmailOpen(QWidget):
 
         layout = QVBoxLayout(self)
 
+
         header_layout = QHBoxLayout()
         layout.addLayout(header_layout)
         self.reply_btn = QPushButton("Reply")
@@ -118,42 +150,57 @@ class EmailOpen(QWidget):
         hline.setFrameShadow(QFrame.Sunken)
         layout.addWidget(hline)
 
+        info_layout = QFormLayout()
+        layout.addLayout(info_layout)
+
         self.title = QLabel()
-        self.title.setText("Test Title")
+        self.title.setText("")
         f = self.title.font()
         f.setWeight(QFont.Bold)
         self.title.setFont(f)
 
         self.by = QLabel()
-        self.by.setText("<Hello world> test@email")
-        layout.addWidget(self.title)
-        layout.addWidget(self.by)
+        self.by.setText("")
+        info_layout.addRow(self.title)
+        info_layout.addRow("From:", self.by)
+        info_layout.addRow("CC:", QLabel(''))
 
-        self.body = QTextEdit()
-        self.body.setReadOnly(True)
-        self.body.setHtml("""
-        <div class="context">
-<h1 class="title">QTextEdit Class</h1>
-<p>The QTextEdit class provides a widget that is used to edit and display both plain and rich text. <a href="#details" data-hydrus="DONE">More...</a></p>
-<div class="table"><table class="alignedsummary">
-<tbody><tr><td class="memItemLeft rightAlign topAlign"> Header:</td><td class="memItemRight bottomAlign"> <span class="preprocessor">#include &lt;QTextEdit&gt;</span>
-</td></tr><tr><td class="memItemLeft rightAlign topAlign"> CMake:</td><td class="memItemRight bottomAlign"> find_package(Qt6 COMPONENTS Widgets REQUIRED) <br>
-target_link_libraries(mytarget PRIVATE Qt6::Widgets)</td></tr><tr><td class="memItemLeft rightAlign topAlign"> qmake:</td><td class="memItemRight bottomAlign"> QT += widgets</td></tr><tr><td class="memItemLeft rightAlign topAlign"> Inherits:</td><td class="memItemRight bottomAlign"> <a href="qabstractscrollarea.html" data-hydrus="DONE">QAbstractScrollArea</a></td></tr><tr><td class="memItemLeft rightAlign topAlign"> Inherited By:</td><td class="memItemRight bottomAlign"> <p><a href="qtextbrowser.html" data-hydrus="DONE">QTextBrowser</a></p>
-</td></tr></tbody></table></div>
-<ul>
-<li><a href="qtextedit-members.html" data-hydrus="DONE">List of all members, including inherited members</a></li>
-</ul>
-<h2 id="public-types">Public Types<a class="plink" href="#public-types" title="Direct link to this headline" data-hydrus="DONE"></a></h2>
-<div class="table"><table class="alignedsummary">
-<tbody><tr><td class="memItemLeft rightAlign topAlign"> struct </td><td class="memItemRight bottomAlign"><b><a href="qtextedit-extraselection.html" data-hydrus="DONE">ExtraSelection</a></b></td></tr>
-<tr><td class="memItemLeft rightAlign topAlign"> flags </td><td class="memItemRight bottomAlign"><b><a href="qtextedit.html#AutoFormattingFlag-enum" data-hydrus="DONE">AutoFormatting</a></b></td></tr>
-<tr><td class="memItemLeft rightAlign topAlign"> enum </td><td class="memItemRight bottomAlign"><b><a href="qtextedit.html#AutoFormattingFlag-enum" data-hydrus="DONE">AutoFormattingFlag</a></b> { AutoNone, AutoBulletList, AutoAll }</td></tr>
-<tr><td class="memItemLeft rightAlign topAlign"> enum </td><td class="memItemRight bottomAlign"><b><a href="qtextedit.html#LineWrapMode-enum" data-hydrus="DONE">LineWrapMode</a></b> { NoWrap, WidgetWidth, FixedPixelWidth, FixedColumnWidth }</td></tr>
-</tbody></table></div>
-<h2 id="properties">Properties<a class="plink" href="#properties" title="Direct link to this headline" data-hydrus="DONE"></a></h2>
-</div>
-        """)
-        layout.addWidget(self.body)
+        hline = QFrame()
+        hline.setFrameShape(QFrame.HLine)
+        hline.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(hline)
+
+        
+        self.body = QWebEnginePage()
+        self.body_plain = QTextBrowser()
+        view = QWebEngineView()
+        view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        view.setPage(self.body)
+        self.stack = QStackedWidget()
+        self.stack.addWidget(view)
+        self.stack.addWidget(self.body_plain)
+        layout.addWidget(self.stack)
+
+    def show_email(self, mail: ServerEmail):
+        body = mail.get_body()
+        self.by.setText(mail.get_recipents())
+        self.title.setText(mail.get_subject())
+        self.show_body(body, mail.get_content_type().lower())
+
+    def show_body(self, body, type = '', null=False):
+        try:
+            if 'html' in type:
+                print("showing html")
+                self.body.setHtml(body)
+                self.stack.setCurrentIndex(0)
+            else:
+                print("showing plain")
+                self.body_plain.setText(body)
+                self.stack.setCurrentIndex(1)
+        except ValueError:
+            if not null:
+                self.show_body(body.replace(chr(0), ""), type, True)
+            raise
 
 
 class EmailFolderSelector(QComboBox):
@@ -161,10 +208,24 @@ class EmailFolderSelector(QComboBox):
     Selection input for different email folders
     """
 
+    folder_selected = Signal(str)
+
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
+        self.currentIndexChanged.connect(self.on_select)
 
-        self.insertItem(0, "Inbox", None)
+    def load(self):
+        if variables.server:
+            for f in variables.server.get_folders():
+                self.addItem(f[0], f[0])
+
+
+    def on_select(self, idx):
+        if variables.server:
+            name = self.itemData(idx)
+            variables.server.select_folder(name)
+            self.setItemText(idx, f"{name} ({variables.server.get_message_count()})")
+            self.folder_selected.emit(name)
 
 class MailLayout(QVBoxLayout):
     """
@@ -177,7 +238,7 @@ class MailLayout(QVBoxLayout):
         header_layout = QHBoxLayout()
         self.addLayout(header_layout)
 
-        user_label = QLabel("Face McFaceFace <face@mcface.com>")
+        user_label = QLabel(variables.email_adress)
         f = user_label.font()
         f.setPointSize(11)
         f.setWeight(QFont.Bold)
@@ -199,12 +260,20 @@ class MailLayout(QVBoxLayout):
         email_list_layout = QVBoxLayout()
         self.email_list = EmailList()
         self.email_folder_selector = EmailFolderSelector()
+        self.email_folder_selector.folder_selected.connect(self.on_folder_selected)
         email_list_layout.addWidget(self.email_folder_selector)
         email_list_layout.addWidget(self.email_list)
         layout.addLayout(email_list_layout)
 
         self.email_open = EmailOpen()
+        self.email_list.mail_clicked.connect(self.email_open.show_email)
         layout.addWidget(self.email_open)
+
+    def on_folder_selected(self, f):
+        self.email_list.load()
+
+    def load(self):
+        self.email_folder_selector.load()
 
         
 class FolderWidget(QWidget):
@@ -219,6 +288,8 @@ class FolderWidget(QWidget):
     def connect_buttons(self, main_window):
         self.mail_layout.compose_btn.clicked.connect(main_window.compose_page)
 
+    def load(self):
+        self.mail_layout.load()
 
 class QLineEditNumber(QLineEdit):
     """

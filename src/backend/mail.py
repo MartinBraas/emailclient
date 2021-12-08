@@ -1,9 +1,10 @@
 # None essential importations for different purposes
-from email import encoders
+from email import encoders, message
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.header import decode_header
+from email import message_from_bytes
 
 
 class Email:
@@ -44,43 +45,39 @@ class ServerEmail:
     A class to encapsulate a single email from the server
     """
 
-    def __init__(self, msg) -> None:
+    def __init__(self, msg: message.Message) -> None:
         self.msg = msg
+        self.from_ = ''
+        self.subject = ''
+        self.body = ''
+        self.content_disposition = ''
+        self.content_type = ''
+
         self._parse()
 
     def _parse(self):
         msg = self.msg
-        # decode the email subject
-        self.subject, encoding = decode_header(msg["Subject"])[0]
-        if isinstance(self.subject, bytes):
-            # if it's a bytes, decode to str
-            self.subject = self.subject.decode(encoding)
+
+        if msg["Subject"]:
+            # decode the email subject
+            self.subject, encoding = decode_header(msg["Subject"])[0]
+            if not encoding:
+                encoding = 'utf-8'
+            if isinstance(self.subject, bytes):
+                # if it's a bytes, decode to str
+                self.subject = self.subject.decode(encoding)
+
         # decode email sender
-        self.from_, encoding = decode_header(msg.get("From"))[0]
-        if isinstance(self.from_, bytes):
-            self.from_ = self.from_.decode(encoding)
-        self.body = ''
-        self.content_disposition = ''
-        # if the email message is multipart
-        if msg.is_multipart():
-            # iterate over email parts
-            for part in msg.walk():
-                # extract content type of email
-                self.content_type = part.get_content_type()
-                self.content_disposition = str(part.get("Content-Disposition"))
-                try:
-                    # get the email body
-                    body = part.get_payload(decode=True).decode()
-                except:
-                    pass
-        else:
-            # extract content type of email
-            self.content_type = msg.get_content_type()
-            # get the email body
-            try:
-                self.body = msg.get_payload(decode=True).decode()
-            except:
-                pass
+        if msg["From"]:
+            self.from_, encoding = decode_header(msg.get("From"))[0]
+            if not encoding:
+                encoding = 'utf-8'
+            if isinstance(self.from_, bytes):
+                self.from_ = self.from_.decode(encoding)
+
+
+    def is_read(self):
+        return True
 
     def get_recipents(self):
         "Get the recipient of the email"
@@ -92,7 +89,44 @@ class ServerEmail:
 
     def get_body(self):
         "get the body of the email"
-        self.body
+        if self.body:
+            return self.body
+        msg = self.msg
+        self.content_disposition = ''
+        # if the email message is multipart
+        if msg.is_multipart():
+            # iterate over email parts
+            for part in msg.walk():
+                # extract content type of email
+                self.content_disposition = str(part.get("Content-Disposition"))
+                if 'attachment' in self.content_disposition:
+                    continue
+                try:
+                    # get the email body
+                   m = message_from_bytes(part.get_payload(decode=True))
+                   self.body = m.as_string()
+                   self.content_type = part.get_content_type()
+                except Exception as e:
+                    print(e)
+            print(self.content_type, self.content_disposition)
+        else:
+            # extract content type of email
+            self.content_type = msg.get_content_type()
+            # get the email body
+            try:
+                m = message_from_bytes(msg.get_payload(decode=True))
+                self.body = m.as_string()
+            except Exception as e:
+                    print(e)
+
+        return self.body
+
+    def get_content_type(self):
+        return self.content_type
+
+    def get_content_disposition(self):
+        return self.content_disposition
+        
 
     def get_attachment(self):
         return 

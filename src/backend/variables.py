@@ -1,17 +1,23 @@
 
 # Variable initialization
-smtp_serv = "a"
-port_w_tls = 0
-port = 0
+smtp_serv = "localhost"
+port_w_tls = None
+port = 2525
 email_adress = "a"
 email_password = "a"
 
 imap_serv = "a"
 imap_port = 0
 
+server = None # active server instance
+
 # State machine function, for choosing SMTP server
 def choose_smtp(number, advanced_smtp, advanced_port):
     global smtp_serv, port_w_tls, port
+
+    ## DISABLE SMTP FOR NOW BECAUSE https://github.com/rnwood/smtp4dev
+    # return smtp_serv, port_w_tls, port
+
     if number == 0:
         smtp_serv = "smtp-mail.outlook.com"
         port_w_tls = 587

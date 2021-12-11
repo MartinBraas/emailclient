@@ -1,5 +1,6 @@
 from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QLineEdit, QFormLayout
 from PySide2.QtCore import Signal
+from PySide2.QtGui import QPixmap
 from backend import variables
 from backend import server as sv
 from backend import mail as em

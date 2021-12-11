@@ -28,7 +28,6 @@ class ComposePage(QWidget):
         layout.addRow("To:", self.to)
         layout.addRow("CC:", self.cc)
         layout.addWidget(self.body)
-
         
         layout_widget = QWidget()
         btn_layout = QHBoxLayout(layout_widget)

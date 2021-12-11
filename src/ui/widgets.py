@@ -299,11 +299,10 @@ class FolderWidget(QWidget):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.mail_layout = MailLayout(self)
-        self.email_open = EmailOpen(self)
+        self.email_open = self.mail_layout.email_open
 
     def connect_buttons(self, main_window):
         self.mail_layout.compose_btn.clicked.connect(main_window.compose_page)
-        
         # Why does this not work?
         self.email_open.reply_btn.clicked.connect(main_window.compose_page)
         self.email_open.forward_btn.clicked.connect(main_window.compose_page)

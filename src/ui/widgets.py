@@ -102,7 +102,8 @@ class MailItemDelagate(QStyledItemDelegate):
 
             # Date
             painter.setFont(font);
-            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+43), "12. Dec, 2019");
+            date = servermail.get_date()
+            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+43), date);
             
 
             # Subject

@@ -1,5 +1,5 @@
 from PySide2.QtCore import Slot
-from PySide2.QtGui import QCloseEvent
+from PySide2.QtGui import QCloseEvent, QIcon
 from PySide2.QtWidgets import QApplication, QMainWindow, QPushButton
 from ui.compose import ComposePage
 from ui.inbox import InboxPage
@@ -13,6 +13,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Skrumpen Email Client")
         self.resize(1200, 800)
         self.compose_window = None
+        self.setIcon()
 
 
     def login_page(self):
@@ -46,3 +47,6 @@ class MainWindow(QMainWindow):
             self.compose_window.close()
         event.accept()
 
+    def setIcon(self):
+        appIcon = QIcon("../icon_png-removebg-preview.png")
+        self.setWindowIcon(appIcon)

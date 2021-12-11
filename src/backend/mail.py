@@ -127,8 +127,10 @@ class ServerEmail:
     def get_content_disposition(self):
         return self.content_disposition
         
-
     def get_attachment(self):
         return 
-
-        
+    
+    def get_date(self):
+        msg = self.msg
+        date = msg["Date"]
+        return date

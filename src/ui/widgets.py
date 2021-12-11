@@ -2,7 +2,7 @@
 from typing import List
 from PySide2.QtCore import QModelIndex, QPoint, QRegExp, QSize, Signal, Qt
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PySide2.QtGui import QBrush, QColor, QFont, QPainter, QPen, QRegExpValidator, QStandardItem, QStandardItemModel
+from PySide2.QtGui import QBrush, QColor, QDesktopServices, QFont, QPainter, QPen, QRegExpValidator, QStandardItem, QStandardItemModel
 from PySide2.QtWidgets import QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QPushButton, QSizePolicy, QStackedWidget, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextBrowser, QVBoxLayout, QWidget
 from backend import server, variables
 from backend.mail import ServerEmail
@@ -122,6 +122,14 @@ class MailItemDelagate(QStyledItemDelegate):
     def sizeHint(self, option:  QStyleOptionViewItem, index:  QModelIndex) -> QSize:
         return QSize(180, 90)
 
+class EmailPage(QWebEnginePage):
+
+    def acceptNavigationRequest(self, qurl, navtype, mainframe):
+        if navtype != QWebEnginePage.NavigationType.NavigationTypeTyped:
+            QDesktopServices.openUrl(qurl)
+            return False
+        return super().acceptNavigationRequest(qurl, navtype, mainframe)
+
 class EmailOpen(QWidget):
     """
     Widget for reading an email
@@ -171,7 +179,7 @@ class EmailOpen(QWidget):
         layout.addWidget(hline)
 
         
-        self.body = QWebEnginePage()
+        self.body = EmailPage()
         self.body_plain = QTextBrowser()
         view = QWebEngineView()
         view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)

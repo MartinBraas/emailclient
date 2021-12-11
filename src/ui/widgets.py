@@ -294,10 +294,10 @@ class FolderWidget(QWidget):
         self.email_open = EmailOpen(self)
 
     def connect_buttons(self, main_window):
-        self.email_open.reply_btn.clicked.connect(main_window.compose_page)
         self.mail_layout.compose_btn.clicked.connect(main_window.compose_page)
         
         # Why does this not work?
+        self.email_open.reply_btn.clicked.connect(main_window.compose_page)
         self.email_open.forward_btn.clicked.connect(main_window.compose_page)
 
     def load(self):

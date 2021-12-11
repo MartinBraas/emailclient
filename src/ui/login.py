@@ -1,5 +1,7 @@
+from PySide2.QtGui import QPixmap
 from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QLineEdit, QFormLayout
 from PySide2.QtCore import Signal
+from PySide2.QtGui import QPixmap
 from backend import variables
 from backend import server as sv
 from backend import mail as em
@@ -36,6 +38,13 @@ class LoginPage(QWidget):
 
         self.message_label = QLabel()
         self.message_label.setStyleSheet("QLabel { color: red; font-weight: bold; }")
+
+        # # Attemp at adding a random logo to the front page
+        # self.pic_label = QLabel()
+        # pic_lbl_layout = QHBoxLayout()
+        # self.pic_label.setPixmap(QPixmap('emailclient\images\logo-placeholder.jpg'))
+        # pic_lbl_layout.addWidget(self.pic_label)
+        # pic_lbl_layout.insertStretch(0)
 
         form_layout.addRow("Email:", self.email)
         form_layout.addRow("Password", self.password)
@@ -75,10 +84,6 @@ class LoginPage(QWidget):
         if smtp_serv:
             self.smtp_serv.setPlaceholderText(smtp_serv)
             self.port_w_tls.setPlaceholderText(str(port_w_tls))
-
-        
-
-        
 
     def function_calls(self):
         if self.save_smtp():

@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QHBoxLayout, QPushButton, QTextEdit, QVBoxLayout, QWidget, QLineEdit, QFormLayout, QSpacerItem
+from PySide2.QtWidgets import QHBoxLayout, QMessageBox, QPushButton, QTextEdit, QVBoxLayout, QWidget, QLineEdit, QFormLayout, QSpacerItem
 
 from backend import variables
 from backend import server as sv
@@ -28,7 +28,6 @@ class ComposePage(QWidget):
         layout.addRow("To:", self.to)
         layout.addRow("CC:", self.cc)
         layout.addWidget(self.body)
-
         
         layout_widget = QWidget()
         btn_layout = QHBoxLayout(layout_widget)
@@ -36,9 +35,16 @@ class ComposePage(QWidget):
         self.attachment_btn = QPushButton("Add Attachment")
         self.send_btn = QPushButton("Send")
         self.send_btn.clicked.connect(self.function_calls)
+        self.close_btn = QPushButton("Close")
+        self.close_btn.clicked.connect(lambda:self.close())
+        btn_layout.addWidget(self.close_btn)
         btn_layout.addWidget(self.attachment_btn)
         btn_layout.addWidget(self.send_btn)
         btn_layout.insertStretch(1, 1)
+
+        
+
+
 
     def writeBody(self):
         File_object = open(r"../messages.txt", 'w')
@@ -67,9 +73,23 @@ class ComposePage(QWidget):
 
         server.quit()
 
+    def msg_box(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("Mail sent")
+        msg.setText("Email Sent. Press Close to return to inbox, or Ok to return to Compose")
+        msg.setIcon(QMessageBox.Information)
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Close)
+        msg.buttonClicked.connect(self.close_on_send)
+        x = msg.exec_()
+
+    def close_on_send(self, i):
+        if i.text() == "Close":
+            self.close()
+
     def function_calls(self):
         self.save()
         self.writeBody()
         self.send_mail()
+        self.msg_box()
 
 

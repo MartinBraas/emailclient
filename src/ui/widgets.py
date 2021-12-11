@@ -27,6 +27,7 @@ class EmailList(QListView):
         self.setItemDelegate(MailItemDelagate(self, self.model()))
         self._load_from = 0
         self.clicked.connect(self.on_mail_click)
+        self.setMinimumWidth(self.sizeHintForColumn(0))
 
     def on_mail_click(self, idx):
         d = self._model.data(idx, DataRole)
@@ -102,7 +103,8 @@ class MailItemDelagate(QStyledItemDelegate):
 
             # Date
             painter.setFont(font);
-            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+43), "12. Dec, 2019");
+            date = servermail.get_date()
+            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+43), date[0:22]);
             
 
             # Subject
@@ -114,7 +116,7 @@ class MailItemDelagate(QStyledItemDelegate):
             if (len(excerpt) > display_width):
                 excerpt = excerpt[:int(display_width)-20] + "...";
 
-            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+65), excerpt);
+            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+65), excerpt);  
 
         else:
             return super().paint(painter, option, index)
@@ -147,8 +149,11 @@ class EmailOpen(QWidget):
         header_layout = QHBoxLayout()
         layout.addLayout(header_layout)
         self.reply_btn = QPushButton("Reply")
+        self.reply_btn.setToolTip("Reply to Email")
         header_layout.addWidget(self.reply_btn)
+
         self.forward_btn = QPushButton("Forward")
+        self.forward_btn.setToolTip("Forward Email")
         header_layout.addWidget(self.forward_btn)
         header_layout.insertStretch(-1, 1)
 
@@ -211,6 +216,7 @@ class EmailOpen(QWidget):
             raise
 
 
+
 class EmailFolderSelector(QComboBox):
     """
     Selection input for different email folders
@@ -254,6 +260,7 @@ class MailLayout(QVBoxLayout):
         header_layout.addWidget(user_label)
 
         self.compose_btn = QPushButton("Compose")
+        self.compose_btn.setToolTip("Start writing an Email")
         header_layout.addWidget(self.compose_btn)
         header_layout.insertStretch(1, 1)
 
@@ -292,9 +299,14 @@ class FolderWidget(QWidget):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.mail_layout = MailLayout(self)
+        self.email_open = EmailOpen(self)
 
     def connect_buttons(self, main_window):
         self.mail_layout.compose_btn.clicked.connect(main_window.compose_page)
+        
+        # Why does this not work?
+        self.email_open.reply_btn.clicked.connect(main_window.compose_page)
+        self.email_open.forward_btn.clicked.connect(main_window.compose_page)
 
     def load(self):
         self.mail_layout.load()

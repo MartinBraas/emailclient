@@ -48,5 +48,5 @@ class MainWindow(QMainWindow):
         event.accept()
 
     def setIcon(self):
-        appIcon = QIcon("../icon_png-removebg-preview.png")
+        appIcon = QIcon("../images/icon_png-removebg-preview.png")
         self.setWindowIcon(appIcon)

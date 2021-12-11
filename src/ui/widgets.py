@@ -115,7 +115,7 @@ class MailItemDelagate(QStyledItemDelegate):
             if (len(excerpt) > display_width):
                 excerpt = excerpt[:int(display_width)-20] + "...";
 
-            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+65), excerpt);
+            painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+65), excerpt);  
 
         else:
             return super().paint(painter, option, index)

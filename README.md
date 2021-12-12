@@ -2,7 +2,11 @@
 The Skrumpen Email Client is an email client for recieving, viewing and sending mails. The application supports email-accounts from a variety of popular providers and works on most systems. The features supported by the application are the basic rudimentary email-functions such as reply/forward etc.
 
 ## Installation and Usage
-To install the Skrumpen Email Client, download the repository at 
+To install the Skrumpen Email Client, download the repository from [here](https://github.com/MartinBraas/emailclient)
+
+## Depenpencies
+- Python
+- PySide2
 
 ## Useful links
 

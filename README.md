@@ -10,16 +10,32 @@ These are the packages needed to run the application:
 - Python
 - PySide2
 
-## Installation
-To install the Skrumpen Email Client, download the repository from [here](https://github.com/MartinBraas/emailclient)
+## Installation and Launching
+To install the Skrumpen Email Client, download the repository from [here.](https://github.com/MartinBraas/emailclient)
 
-Or clone into a folder:
+
+Or clone into a folder with
+
 `git clone https://github.com/MartinBraas/emailclient`
 
-## Usage
-The Skrumpem Email Client allows users to acces their inboxes from popular email service providers such as Gmail or Outlook.
 
-For Gmail users, you need to allow 'acces from less secure apps', which can be read about [here](https://support.google.com/a/answer/6260879?hl=en)
+
+Once downloaded, navigate to the `emailclient/src` folder and enter
+
+`python main.py`
+
+## Usage
+The Skrumpem Email Client allows users to acces their inboxes from popular email service providers such as Gmail or Outlook. (see [Usage Issues](#usage-issues))
+
+To get started with using the email client, enter your email address and password in the login-window after launching the application. After establishing a connection with the associated SMTP-server, the inbox-window will pop up and you will be able to use the full functionality of Skrumpen Email Client.
+
+### Usage Issues
+Running the program for the first time:
+- When running the program for the first time, the load times after entering your login-credentials or when accessing folders in the drop-down menu, may be long and make the program inresponsive for a while. This is due to the `pycache` folder being created in the system files, and should only happen the first time the program is run.
+
+Gmail-specific problems:
+- For Gmail users, you need to allow 'acces from less secure apps', which can be read about [here](https://support.google.com/a/answer/6260879?hl=en)
+- When logging in to the client for the first time, you might be prompted to enter a 'app-specific password'. Instructions on how to do so is found [here.](https://support.google.com/accounts/answer/185833?hl=en)
 
 
 ## Useful links

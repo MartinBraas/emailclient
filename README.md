@@ -14,12 +14,12 @@ These are the packages needed to run the application:
 To install the Skrumpen Email Client, download the repository from [here](https://github.com/MartinBraas/emailclient)
 
 Or clone into a folder:
-'git clone https://github.com/MartinBraas/emailclient'
+`git clone https://github.com/MartinBraas/emailclient`
 
 ## Usage
 The Skrumpem Email Client allows users to acces their inboxes from popular email service providers such as Gmail or Outlook.
 
-For Gmail users, you need to allow "acces from less secure apps", which can be read about [here](https://support.google.com/a/answer/6260879?hl=en)
+For Gmail users, you need to allow 'acces from less secure apps', which can be read about [here](https://support.google.com/a/answer/6260879?hl=en)
 
 
 ## Useful links

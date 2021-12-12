@@ -1,5 +1,7 @@
 # Skrumpen Email Client
 
+![Alt  text](images/logo.png?raw=true)
+
 ## Introduction
 The Skrumpen Email Client is an email client for recieving, viewing and sending mails. The application supports email-accounts from a variety of popular providers and works on most systems. The features supported by the application are the basic rudimentary email-functions such as reply/forward etc.
 
@@ -25,7 +27,7 @@ Once downloaded, navigate to the `emailclient/src` folder and enter
 `python main.py`
 
 ## Usage
-The Skrumpem Email Client allows users to acces their inboxes from popular email service providers such as Gmail or Outlook. (see [Usage Issues](#usage-issues))
+The Skrumpem Email Client allows users to acces their inboxes from popular email service providers such as Gmail or Outlook (see [Usage Issues](#usage-issues) for more info).
 
 To get started with using the email client, enter your email address and password in the login-window after launching the application. After establishing a connection with the associated SMTP-server, the inbox-window will pop up and you will be able to use the full functionality of Skrumpen Email Client.
 

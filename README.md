@@ -10,21 +10,29 @@ The Skrumpen Email Client is an email client for recieving, viewing and sending 
 ## Prerequisites
 These are the packages needed to run the application:
 - Python
+  - [Download](https://www.python.org/downloads/)
+  - [Installation](https://www.tutorialspoint.com/how-to-install-python-in-windows)
+
 - PySide2
+  - [Installation guide](https://pypi.org/project/PySide2/)
+  - When using Anaconda, use 
+   ```
+   conda install -c conda-forge pyside2
+   ```
 
 ## Installation and Launching
 To install the Skrumpen Email Client, download the repository from [here.](https://github.com/MartinBraas/emailclient)
 
 
 Or clone into a folder with
-
-`git clone https://github.com/MartinBraas/emailclient`
-
-
+```
+git clone https://github.com/MartinBraas/emailclient
+```
 
 Once downloaded, navigate to the `emailclient/src` folder and enter
-
-`python main.py`
+```
+python main.py
+```
 
 ## Usage
 The Skrumpem Email Client allows users to acces their inboxes from popular email service providers such as Gmail or Outlook (see [Usage Issues](#usage-issues) for more info).
@@ -39,6 +47,8 @@ Gmail-specific problems:
 - For Gmail users, you need to allow 'acces from less secure apps', which can be read about [here](https://support.google.com/a/answer/6260879?hl=en)
 - When logging in to the client for the first time, you might be prompted to enter a 'app-specific password'. Instructions on how to do so is found [here.](https://support.google.com/accounts/answer/185833?hl=en)
 
+Problems for Anaconda users:
+- Sometimes when installing PySide2, the current Anaconda enviroment has too many packages installed by default, which makes the enviroment solving take a very long time. To solve this, use `conda create -n foo -c conda-forge pyside2` to create a new Anaconda enviroment and install it there.
 
 ## Useful links
 

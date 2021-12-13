@@ -8,8 +8,6 @@ from email import message_from_bytes
 from backend import variables as v
 from array import array as arr
 
-# mr_yay = False
-
 class Email:
     """
     A class to encapsulate a single email

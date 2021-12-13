@@ -1,8 +1,9 @@
 from PySide2.QtCore import Slot
-from PySide2.QtGui import QCloseEvent, QIcon
-from PySide2.QtWidgets import QApplication, QMainWindow, QPushButton
+from PySide2.QtGui import QCloseEvent, QIcon, QPixmap
+from PySide2.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel
 from ui.compose import ComposePage
 from ui.inbox import InboxPage
+import sys
 
 from ui.login import LoginPage
 
@@ -15,18 +16,15 @@ class MainWindow(QMainWindow):
         self.compose_window = None
         self.setIcon()
 
-
     def login_page(self):
         page = LoginPage(self)
         page.login_signal.connect(self.on_login)
-        self.setCentralWidget(page) 
+        self.setCentralWidget(page)
 
     def on_login(self, success, msg):
         if success:
             p = self.inbox_page()
             p.load()
-
-
 
     def inbox_page(self):
         page = InboxPage(self)
@@ -38,6 +36,7 @@ class MainWindow(QMainWindow):
         self.compose_window = ComposePage()
         self.compose_window.resize(1000, 800)
         self.compose_window.show()
+        self.setIcon()
         # self.setCentralWidget(page)
 
     def closeEvent(self, event: QCloseEvent) -> None:

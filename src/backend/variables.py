@@ -52,3 +52,12 @@ def load_login(email_adr, email_pwd):
     email_adress = email_adr
     email_password = email_pwd
     return email_adress, email_password
+
+# def reply_btn(email_recip):
+#     "Method meant to recieve the sender of current mail, to pass to reply"
+#     global email_recipient, rply_is_checked
+#     email_recipient = email_recip
+#     rply_is_checked = True
+#     # print("I also get here")
+#     print("THIS IS FOR REAL:", email_recipient)
+#     return email_recipient

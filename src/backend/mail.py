@@ -5,7 +5,10 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.header import decode_header
 from email import message_from_bytes
+from backend import variables as v
+from array import array as arr
 
+# mr_yay = False
 
 class Email:
     """
@@ -72,15 +75,21 @@ class ServerEmail:
             self.from_, encoding = decode_header(msg.get("From"))[0]
             if not encoding:
                 encoding = 'utf-8'
+                # v.reply_btn(self.from_)
             if isinstance(self.from_, bytes):
                 self.from_ = self.from_.decode(encoding)
+                # v.reply_btn(self.from_) 
 
+    # def mr_true(mr_true: bool):
+    #     global mr_yay
+    #     mr_yay = mr_true
 
     def is_read(self):
         return True
 
     def get_recipents(self):
         "Get the recipient of the email"
+        # v.reply_btn(self.from_)
         return self.from_
 
     def get_subject(self):

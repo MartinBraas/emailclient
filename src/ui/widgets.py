@@ -6,6 +6,7 @@ from PySide2.QtGui import QBrush, QColor, QDesktopServices, QFont, QPainter, QPe
 from PySide2.QtWidgets import QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QPushButton, QSizePolicy, QStackedWidget, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextBrowser, QVBoxLayout, QWidget
 from backend import server, variables
 from backend.mail import ServerEmail
+from array import array as arr
 
 DataRole = Qt.UserRole + 1
 
@@ -31,8 +32,9 @@ class EmailList(QListView):
 
     def on_mail_click(self, idx):
         d = self._model.data(idx, DataRole)
-        self.mail_clicked.emit(d)
-        print("mail clicked", d)
+        self.mail_clicked.emit(d) 
+        print("mail clicked", d) 
+        # variables.reply_btn(ServerEmail.get_recipents(d))
 
     def load_more(self, limit=20):
         if variables.server:
@@ -145,7 +147,6 @@ class EmailOpen(QWidget):
 
         layout = QVBoxLayout(self)
 
-
         header_layout = QHBoxLayout()
         layout.addLayout(header_layout)
         self.reply_btn = QPushButton("Reply")
@@ -156,6 +157,10 @@ class EmailOpen(QWidget):
         self.forward_btn.setToolTip("Forward Email")
         header_layout.addWidget(self.forward_btn)
         header_layout.insertStretch(-1, 1)
+
+        self.delete_btn = QPushButton("Delete")
+        self.delete_btn.setToolTip("Delete Email")
+        header_layout.addWidget(self.delete_btn)
 
         
         hline = QFrame()
@@ -306,6 +311,7 @@ class FolderWidget(QWidget):
         # Why does this not work?
         self.email_open.reply_btn.clicked.connect(main_window.compose_page)
         self.email_open.forward_btn.clicked.connect(main_window.compose_page)
+        
 
     def load(self):
         self.mail_layout.load()

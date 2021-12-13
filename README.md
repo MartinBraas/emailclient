@@ -11,7 +11,7 @@ The Skrumpen Email Client is an email client for recieving, viewing and sending 
 These are the packages needed to run the application:
 - Python
   - [Download](https://www.python.org/downloads/)
-  - [Installation](https://www.tutorialspoint.com/how-to-install-python-in-windows)
+  - [Installation guide](https://www.tutorialspoint.com/how-to-install-python-in-windows)
 
 - PySide2
   - [Installation guide](https://pypi.org/project/PySide2/)
@@ -19,6 +19,7 @@ These are the packages needed to run the application:
    ```
    conda install -c conda-forge pyside2
    ```
+   If the solving of the enviroment takes a long time, check out [Usage Issues](#usage-issues).
 
 ## Installation and Launching
 To install the Skrumpen Email Client, download the repository from [here.](https://github.com/MartinBraas/emailclient)

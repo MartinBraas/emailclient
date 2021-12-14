@@ -8,6 +8,8 @@ from backend import server, variables
 from backend.mail import ServerEmail
 from array import array as arr
 
+from ui.compose import ComposeData
+
 DataRole = Qt.UserRole + 1
 
 class EmailList(QListView):
@@ -151,14 +153,17 @@ class EmailOpen(QWidget):
         layout.addLayout(header_layout)
         self.reply_btn = QPushButton("Reply")
         self.reply_btn.setToolTip("Reply to Email")
+        self.reply_btn.setDisabled(True)
         header_layout.addWidget(self.reply_btn)
 
         self.forward_btn = QPushButton("Forward")
         self.forward_btn.setToolTip("Forward Email")
+        self.forward_btn.setDisabled(True)
         header_layout.addWidget(self.forward_btn)
         header_layout.insertStretch(-1, 1)
 
         self.delete_btn = QPushButton("Delete")
+        self.delete_btn.setDisabled(True)
         self.delete_btn.setToolTip("Delete Email")
         header_layout.addWidget(self.delete_btn)
 
@@ -181,7 +186,8 @@ class EmailOpen(QWidget):
         self.by.setText("")
         info_layout.addRow(self.title)
         info_layout.addRow("From:", self.by)
-        info_layout.addRow("CC:", QLabel(''))
+        info_layout.addRow("Cc:", QLabel(''))
+        info_layout.addRow("Bcc:", QLabel(''))
 
         hline = QFrame()
         hline.setFrameShape(QFrame.HLine)
@@ -199,27 +205,41 @@ class EmailOpen(QWidget):
         self.stack.addWidget(self.body_plain)
         layout.addWidget(self.stack)
 
+        self._current_mail = None
+        self._current_type = ''
+
     def show_email(self, mail: ServerEmail):
+        self._current_mail = mail
         body = mail.get_body()
         self.by.setText(mail.get_recipents())
         self.title.setText(mail.get_subject())
         self.show_body(body, mail.get_content_type().lower())
 
     def show_body(self, body, type = '', null=False):
+        self.forward_btn.setDisabled(False)
+        self.delete_btn.setDisabled(False)
+        self.reply_btn.setDisabled(False)
         try:
             if 'html' in type:
                 print("showing html")
                 self.body.setHtml(body)
                 self.stack.setCurrentIndex(0)
+                self._current_type = 'html'
             else:
                 print("showing plain")
                 self.body_plain.setText(body)
                 self.stack.setCurrentIndex(1)
+                self._current_type = 'plain'
         except ValueError:
             if not null:
                 self.show_body(body.replace(chr(0), ""), type, True)
             raise
 
+    def get_current_mail(self):
+        return self._current_mail
+
+    def get_current_type(self):
+        return self._current_type
 
 
 class EmailFolderSelector(QComboBox):
@@ -296,21 +316,42 @@ class MailLayout(QVBoxLayout):
         self.email_folder_selector.load()
 
         
-class FolderWidget(QWidget):
+class FolderPage(QWidget):
     """
     Base class for page folder
     """
 
-    def __init__(self, parent = None) -> None:
-        super().__init__(parent)
+    def __init__(self, main_window) -> None:
+        super().__init__(main_window)
+        self.main_window = main_window
         self.mail_layout = MailLayout(self)
         self.email_open = self.mail_layout.email_open
 
-    def connect_buttons(self, main_window):
-        self.mail_layout.compose_btn.clicked.connect(main_window.compose_page)
-        # Why does this not work?
-        self.email_open.reply_btn.clicked.connect(main_window.compose_page)
-        self.email_open.forward_btn.clicked.connect(main_window.compose_page)
+    def connect_buttons(self):
+        self.mail_layout.compose_btn.clicked.connect(lambda: self.main_window.compose_page(None))
+        self.email_open.reply_btn.clicked.connect(self.on_reply)
+        self.email_open.forward_btn.clicked.connect(self.on_forward)
+
+    def on_reply(self):
+        current_mail = self.email_open.get_current_mail()
+        if current_mail:
+            data = ComposeData()
+            data.compose_type = "reply"
+            data.to = current_mail.get_recipents(include_name=False)
+            data.subject = "RE: " + current_mail.get_subject()
+            data.type = self.email_open.get_current_type()
+            self.main_window.compose_page(data)
+
+    def on_forward(self):
+        current_mail = self.email_open.get_current_mail()
+        if current_mail:
+            data = ComposeData()
+            data.compose_type = "forward"
+            data.subject =  "FW: " + current_mail.get_subject()
+            data.body = current_mail.get_body()
+            data.type = self.email_open.get_current_type()
+            self.main_window.compose_page(data)
+
         
 
     def load(self):

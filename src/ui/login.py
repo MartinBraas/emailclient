@@ -96,6 +96,8 @@ class LoginPage(QWidget):
             v.choose_smtp(2, advanced_smtp, advanced_port)
 
         try:
+            print("smtp server", v.smtp_serv)
+            print("imap server", v.imap_serv)
             v.server = sv.Server(v.smtp_serv, v.imap_serv, v.port_w_tls, v.port)
             v.server.connect()
             return True

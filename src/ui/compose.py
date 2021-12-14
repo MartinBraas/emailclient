@@ -1,16 +1,20 @@
-from PySide2.QtWidgets import QHBoxLayout, QMessageBox, QPushButton, QTextEdit, QVBoxLayout, QWidget, QLineEdit, QFormLayout, QSpacerItem
+import os
+from PySide2.QtCore import Qt, Signal
+from PySide2.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMessageBox, QPushButton, QSizePolicy, QTextEdit, QVBoxLayout, QWidget, QLineEdit, QFormLayout, QSpacerItem
 
-from backend import variables
-from backend import server as sv
-from backend import mail as em
+from backend import mail as em, variables
 
-# v = variables
-v = variables
-recipient_email = "a"
-recipient_name = "a"
-mail_subject = "a"
-mail_body = "a"
+from dataclasses import dataclass
 
+@dataclass
+class ComposeData:
+    compose_type = 'reply' # reply or forward
+    subject: str = ''
+    to: str = ''
+    cc: str = ''
+    bcc: str = ''
+    body: str = ''
+    attachments = None
 class ComposePage(QWidget):
     def __init__(self, parent = None):
         super().__init__(parent=parent)
@@ -21,20 +25,32 @@ class ComposePage(QWidget):
         self.subject = QLineEdit()
         self.to = QLineEdit()
         self.cc = QLineEdit()
-        self.cc.text()
+        self.bcc = QLineEdit()
         self.body = QTextEdit()
 
         layout.addRow("Subject:", self.subject)
         layout.addRow("To:", self.to)
         layout.addRow("CC:", self.cc)
+        layout.addRow("BCC:", self.bcc)
         layout.addWidget(self.body)
         
         layout_widget = QWidget()
         btn_layout = QHBoxLayout(layout_widget)
+
+        self.attachments = QListWidget()
+        self.attachments.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.attachments.setMaximumHeight(100)
+        self.attachments.setVisible(False)
+        self.attachments.itemDoubleClicked.connect(self.on_remove_attachment)
+        layout.addWidget(self.attachments)
+
         layout.addWidget(layout_widget)
+
         self.attachment_btn = QPushButton("Add Attachment")
+        self.attachment_btn.clicked.connect(self.on_add_attachment)
+
         self.send_btn = QPushButton("Send")
-        self.send_btn.clicked.connect(self.function_calls)
+        self.send_btn.clicked.connect(self.on_send)
         self.close_btn = QPushButton("Close")
         self.close_btn.clicked.connect(lambda:self.close())
         btn_layout.addWidget(self.close_btn)
@@ -42,54 +58,95 @@ class ComposePage(QWidget):
         btn_layout.addWidget(self.send_btn)
         btn_layout.insertStretch(1, 1)
 
-        
+        self.files = set()
 
+    def on_add_attachment(self):
+        files = QFileDialog.getOpenFileNames(self, "Select one or more attachments")
+        for f in files[0]:
+            self.attachments.setVisible(True)
+            self.files.add(f)
+        self.update_attachments()        
 
+    def update_attachments(self):
+        self.attachments.clear()
+        for f in self.files:
+            name = os.path.split(f)[1]
+            print(name)
+            t = QListWidgetItem(name, self.attachments)
+            t.setData(Qt.UserRole+1, f)
+            t.setData(Qt.DisplayRole, name)
 
-    def writeBody(self):
-        File_object = open(r"../messages.txt", 'w')
-        File_object.write(mail_body)
-        File_object.close()
+    def on_remove_attachment(self, item):
+        f = item.data(Qt.UserRole+1)
+        self.files.remove(f)
+        self.update_attachments()
 
-    def save(self):
-        global recipient_email, recipient_name, mail_subject, mail_body
-        recipient_email = self.to.text()
-        recipient_name = self.cc.text()
-        mail_subject = self.subject.text()
-        mail_body = self.body.toPlainText()
+    def set_data(self, data: ComposeData):
+        self.to.setText(data.to)
+        self.cc.setText(data.cc)
+        self.bcc.setText(data.bcc)
+        self.subject.setText(data.subject)
+        self.body.setText(data.body)
+        self.set_newline()
+        if data.compose_type == 'reply':
+            self.body.setFocus(Qt.OtherFocusReason)
+        elif data.compose_type == 'forward':
+            self.to.setFocus(Qt.OtherFocusReason)
+    
+    def set_newline(self):
+        t = self.body.textCursor()
+        t.setPosition(0)
+        self.body.setTextCursor(t)
+        self.body.insertHtml("<br/><hr/><br/>")
+        t = self.body.textCursor()
+        t.setPosition(0)
+        self.body.setTextCursor(t)
 
-    def send_mail(self):
-        server = sv.Server(v.smtp_serv, 0, v.port_w_tls, v.port)
-        server.connect()
+    def clear(self):
+        self.files = set()
+        self.update_attachments()
+        self.subject.setText("")
+        self.to.setText("")
+        self.cc.setText("")
+        self.bcc.setText("")
+        self.body.setText("")
+        self.attachments.setVisible(False)
 
-        email = em.Email()
-        with open('../messages.txt', 'r') as f:
-            message = f.read()
-        email.setBody(message)
-        email.setRecipient(recipient_name, recipient_email)
-        email.setSubject(mail_subject)
-        server.login(v.email_adress, v.email_password)
-        server.send(v.email_adress, recipient_email, email.getString())
+    def on_send(self):
+        mail = em.Email()
+        mail.setBody(self.body.toHtml(), "html")
+        mail.setSubject(self.subject.text())
+        mail.setRecipient(variables.email_adress, self.to.text())
+        mail.setCC(self.cc.text())
+        mail.setBCC(self.bcc.text())
 
-        server.quit()
+        # attachments
+        for f in self.files:
+            if os.path.exists(f) and not os.path.isdir(f):
+                with open(f, 'rb') as r:
+                    mail.addAttachment(os.path.split(f)[1], r.read())
 
-    def msg_box(self):
-        msg = QMessageBox()
-        msg.setWindowTitle("Mail sent")
-        msg.setText("Email Sent. Press Close to return to inbox, or Ok to return to Compose")
-        msg.setIcon(QMessageBox.Information)
-        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Close)
-        msg.buttonClicked.connect(self.close_on_send)
-        x = msg.exec_()
+        try:
+            variables.server.send(mail)
 
-    def close_on_send(self, i):
-        if i.text() == "Close":
-            self.close()
+            msg = QMessageBox()
+            msg.setWindowTitle("Mail sent")
+            msg.setText("Email has been successfully sent")
+            msg.setIcon(QMessageBox.Information)
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.buttonClicked.connect(lambda: self.close())
+            x = msg.exec_()
+        except Exception as e:
+            if 'connect()' in str(e):
+                variables.server.connect()
+                return self.on_send()
+            msg = QMessageBox()
+            msg.setWindowTitle("An error occurred")
+            msg.setText(str(e))
+            msg.setIcon(QMessageBox.Warning)
+            msg.setStandardButtons(QMessageBox.Close)
+            x = msg.exec_()
 
-    def function_calls(self):
-        self.save()
-        self.writeBody()
-        self.send_mail()
-        self.msg_box()
-
-
+    def closeEvent(self, event) -> None:
+        self.clear()
+        return super().closeEvent(event)

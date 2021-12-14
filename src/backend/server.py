@@ -1,7 +1,7 @@
 import smtplib
 import imaplib
 import email
-from backend.mail import ServerEmail
+from backend.mail import ServerEmail, Email
 from typing import List, Tuple
 class Server:
     """
@@ -13,7 +13,7 @@ class Server:
         self.port_tls = port_w_tls
         self.port = port
 
-        self.server = smtplib.SMTP(smtpserv)
+        self.server = smtplib.SMTP(smtpserv, self.port_tls or self.port)
         
         self.imap = None
         self.imap_host = imapserv
@@ -111,9 +111,9 @@ class Server:
 
         return fs
 
-    def send(self, sender, reciepient, emailbody):
+    def send(self, mail: Email):
         "Send email through mailserver"
-        self.server.sendmail(sender, reciepient, emailbody)
+        self.server.send_message(mail.getMessage())
 
     def quit(self):
         "Quit the server"

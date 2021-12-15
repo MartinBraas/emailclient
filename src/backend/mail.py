@@ -57,7 +57,8 @@ class ServerEmail:
     A class to encapsulate a single email from the server
     """
 
-    def __init__(self, msg: message.Message) -> None:
+    def __init__(self, mail_id, msg: message.Message) -> None:
+        self.mail_id = mail_id
         self.msg = msg
         self.from_ = ''
         self.cc = ''
@@ -92,8 +93,8 @@ class ServerEmail:
                 # v.reply_btn(self.from_) 
 
 
-    def is_read(self):
-        return True
+    def get_id(self):
+        return self.mail_id
 
     def get_recipents(self, include_name = True):
         "Get the recipient of the email"

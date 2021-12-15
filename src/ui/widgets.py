@@ -5,6 +5,7 @@ from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PySide2.QtGui import QBrush, QColor, QDesktopServices, QFont, QPainter, QPen, QRegExpValidator, QStandardItem, QStandardItemModel
 from PySide2.QtWidgets import QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QPushButton, QSizePolicy, QStackedWidget, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextBrowser, QVBoxLayout, QWidget
 from backend import server, variables
+from backend import mail
 from backend.mail import ServerEmail
 from array import array as arr
 
@@ -106,11 +107,11 @@ class MailItemDelagate(QStyledItemDelegate):
         self.model = model
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
-
         if index.column() == 0:
+            painter.save()
             servermail: ServerEmail = self.model.data(index, DataRole);
 
-            unread = not servermail.is_read()
+            unread = variables.server.is_unread(servermail.get_id())
 
             padding = 2
 
@@ -160,7 +161,7 @@ class MailItemDelagate(QStyledItemDelegate):
                 excerpt = excerpt[:int(display_width)-20] + "...";
 
             painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+65), excerpt);  
-
+            painter.restore()
         else:
             return super().paint(painter, option, index)
 
@@ -179,6 +180,12 @@ class EmailOpen(QWidget):
     """
     Widget for reading an email
     """
+
+    class MarkReadAction(QObject):
+        mark_read = Signal(bytes)
+
+        def read_mail(self, mail_id):
+            variables.server.mark_read(mail_id)
     
     def __init__(self, parent = None) -> None:
         super().__init__(parent=parent)
@@ -247,12 +254,19 @@ class EmailOpen(QWidget):
         self._current_mail = None
         self._current_type = ''
 
+        self._mark_read_action = self.MarkReadAction()
+        self._thread = QThread(self)
+        self._mark_read_action.moveToThread(self._thread)
+        self._mark_read_action.mark_read.connect(self._mark_read_action.read_mail)
+        self._thread.start()
+
     def show_email(self, mail: ServerEmail):
         self._current_mail = mail
         body = mail.get_body()
         self.by.setText(mail.get_recipents())
         self.title.setText(mail.get_subject())
         self.show_body(body, mail.get_content_type().lower())
+        self._mark_read_action.mark_read.emit(mail.get_id())
 
     def show_body(self, body, type = '', null=False):
         self.forward_btn.setDisabled(False)

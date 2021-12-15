@@ -1,13 +1,67 @@
 from PySide2.QtGui import QPixmap
 from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QLineEdit, QFormLayout
-from PySide2.QtCore import Signal
+from PySide2.QtCore import QThread, Signal, QObject
 from backend import variables
 from backend import server as sv
 from backend import mail as em
+from ui.spinner import QtWaitingSpinner
 from ui.widgets import QLineEditNumber
 import traceback
 
 v = variables
+
+class LoginAction(QThread):
+    login_result = Signal(bool, str)
+
+    def __init__(self, page) -> None:
+        super().__init__()
+        self.page = page
+
+    def run(self):
+        print("logging in")
+        if self.save_smtp():
+            self.save_login()
+
+    def save_smtp(self):
+        email = self.page.email.text()
+        advanced_smtp = self.page.smtp_serv.text()
+        advanced_port = self.page.port_w_tls.text()
+        #Autodetection to be implemented after advanced page
+        if "@gmail" in email:
+            v.choose_smtp(1, " ", 0)
+            v.choose_imap(1, " ", 0)
+        elif "@outlook" in email or "@hotmail" in email or "@live" in email:
+            v.choose_smtp(0, " ", 0)
+            v.choose_imap(0, " ", 0)
+        else:
+            v.choose_smtp(2, advanced_smtp, advanced_port)
+
+        try:
+            print("smtp server", v.smtp_serv)
+            print("imap server", v.imap_serv)
+            v.server = sv.Server(v.smtp_serv, v.imap_serv, v.port_w_tls, v.port)
+            v.server.connect()
+            return True
+        except Exception as e:
+            traceback.print_exc()
+            msg = str(e)
+            self.login_result.emit(False, msg)
+            return False
+
+    def save_login(self):
+        email = self.page.email.text()
+        password = self.page.password.text()
+        v.load_login(email, password)
+        try:
+            if v.server:
+                v.server.login(email, password)
+            msg = ""
+            self.login_result.emit(True, msg)
+        except Exception as e:
+            traceback.print_exc()
+            msg = str(e)
+            self.login_result.emit(False, msg)
+
 
 class LoginPage(QWidget):
 
@@ -45,13 +99,15 @@ class LoginPage(QWidget):
 
         loginbtn_layout = QHBoxLayout()
         self.login_btn = QPushButton("Login")
-        self.login_btn.clicked.connect(self.function_calls)
+        self.login_btn.clicked.connect(self.on_login_clicked)
         loginbtn_layout.addWidget(self.login_btn)
         loginbtn_layout.insertStretch(0)
 
         v_layout.addLayout(form_layout)
         v_layout.addLayout(loginbtn_layout)
         v_layout.addWidget(self.message_label)
+        self.spin = QtWaitingSpinner(self, disableParentWhenSpinning=True)
+        v_layout.addWidget(self.spin)
 
         # center widgets vertically and horizontally
 
@@ -62,6 +118,18 @@ class LoginPage(QWidget):
 
         #
         self.email.textChanged.connect(self.on_email_text_change)
+        self.login_signal.connect(self.on_login_signal)
+
+    def on_login_clicked(self):
+        self.spin.start()
+        self.login_action = LoginAction(self)
+        self.login_action.login_result.connect(self.login_signal.emit)
+        self.login_action.start()
+
+    def on_login_signal(self, status, msg):
+        if not status:
+            self.message_label.setText(msg)
+            self.spin.stop()
 
     def on_email_text_change(self, txt):
         smtp_serv = port_w_tls = port = None
@@ -77,49 +145,3 @@ class LoginPage(QWidget):
             self.smtp_serv.setPlaceholderText(smtp_serv)
             self.port_w_tls.setPlaceholderText(str(port_w_tls))
 
-    def function_calls(self):
-        if self.save_smtp():
-            self.save_login()
-
-    def save_smtp(self):
-        email = self.email.text()
-        advanced_smtp = self.smtp_serv.text()
-        advanced_port = self.port_w_tls.text()
-        #Autodetection to be implemented after advanced page
-        if "@gmail" in email:
-            v.choose_smtp(1, " ", 0)
-            v.choose_imap(1, " ", 0)
-        elif "@outlook" in email or "@hotmail" in email or "@live" in email:
-            v.choose_smtp(0, " ", 0)
-            v.choose_imap(0, " ", 0)
-        else:
-            v.choose_smtp(2, advanced_smtp, advanced_port)
-
-        try:
-            print("smtp server", v.smtp_serv)
-            print("imap server", v.imap_serv)
-            v.server = sv.Server(v.smtp_serv, v.imap_serv, v.port_w_tls, v.port)
-            v.server.connect()
-            return True
-        except Exception as e:
-            traceback.print_exc()
-            msg = str(e)
-            self.login_signal.emit(False, msg)
-            self.message_label.setText(msg)
-            return False
-
-    def save_login(self):
-        email = self.email.text()
-        password = self.password.text()
-        v.load_login(email, password)
-        try:
-            if v.server:
-                v.server.login(email, password)
-            msg = ""
-            self.login_signal.emit(True, msg)
-        except Exception as e:
-            traceback.print_exc()
-            msg = str(e)
-            self.login_signal.emit(False, msg)
-
-        self.message_label.setText(msg)

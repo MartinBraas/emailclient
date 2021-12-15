@@ -1,6 +1,6 @@
 
 from typing import List
-from PySide2.QtCore import QModelIndex, QPoint, QRegExp, QSize, Signal, Qt
+from PySide2.QtCore import QModelIndex, QObject, QPoint, QRegExp, QSize, QThread, Signal, Qt
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PySide2.QtGui import QBrush, QColor, QDesktopServices, QFont, QPainter, QPen, QRegExpValidator, QStandardItem, QStandardItemModel
 from PySide2.QtWidgets import QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QPushButton, QSizePolicy, QStackedWidget, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextBrowser, QVBoxLayout, QWidget
@@ -9,6 +9,7 @@ from backend.mail import ServerEmail
 from array import array as arr
 
 from ui.compose import ComposeData
+from ui.spinner import QtWaitingSpinner
 
 DataRole = Qt.UserRole + 1
 
@@ -18,6 +19,25 @@ class EmailList(QListView):
     """
 
     mail_clicked = Signal(ServerEmail)
+    load_more_signal = Signal(int, int)
+    class LoadMore(QObject):
+        loaded_mails = Signal(list)
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.fetching = False
+
+        def get(self, limit, load_from):
+            if not self.fetching:
+                print("getting mails", load_from, limit)
+                self.fetching = True
+                emails = []
+                try:
+                    if variables.server:
+                        emails = variables.server.fetch(limit=limit, start_from=load_from)
+                finally:
+                    self.loaded_mails.emit(emails)
+                    self.fetching = False
 
     def __init__(self, parent = None) -> None:
         super().__init__(parent=parent)
@@ -31,6 +51,21 @@ class EmailList(QListView):
         self._load_from = 0
         self.clicked.connect(self.on_mail_click)
         self.setMinimumWidth(self.sizeHintForColumn(0))
+        self.spin = QtWaitingSpinner(self, disableParentWhenSpinning=True)
+
+        self._thread = QThread(self)
+        self._load_more_action = self.LoadMore()
+        self._load_more_action.loaded_mails.connect(self.on_mails)
+        self._load_more_action.moveToThread(self._thread)
+        self.load_more_signal.connect(self._load_more_action.get)
+        self.verticalScrollBar().valueChanged.connect(self.on_scroll_value)
+
+    def on_scroll_value(self, v):
+        s = self.verticalScrollBar()
+        # check if scrolled more than 90%
+        if v > s.maximum() * 0.9:
+            self.load_more()
+
 
     def on_mail_click(self, idx):
         d = self._model.data(idx, DataRole)
@@ -38,17 +73,21 @@ class EmailList(QListView):
         print("mail clicked", d) 
         # variables.reply_btn(ServerEmail.get_recipents(d))
 
+    def on_mails(self, mails: List[ServerEmail]):
+        # print("received mails", mails)
+        for e in mails:
+            item = QStandardItem()
+            item.setCheckable(False)
+            item.setEditable(False)
+            item.setData(e, DataRole)
+            self._model.appendRow(item)
+            self._load_from += 1
+        self.spin.stop()
+
     def load_more(self, limit=20):
-        if variables.server:
-            items = []
-            emails: List[ServerEmail] = variables.server.fetch(limit=limit, start_from=self._load_from)
-            for e in emails:
-                item = QStandardItem()
-                item.setCheckable(False)
-                item.setEditable(False)
-                item.setData(e, DataRole)
-                items.append(item)
-                self._model.appendRow(item)
+        self._thread.start()
+        self.spin.start()
+        self.load_more_signal.emit(limit, self._load_from)
 
     def load(self):
         self._model.clear()
@@ -248,23 +287,46 @@ class EmailFolderSelector(QComboBox):
     """
 
     folder_selected = Signal(str)
+    run_get_folders = Signal()
+
+    class GetFolders(QObject):
+        folders = Signal(list)
+
+        def get(self):
+            print("getting folders")
+            l = variables.server.get_folders()
+            print(l)
+            self.folders.emit(l)
 
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
+        self._thread = QThread(self)
+        self._get_folders = self.GetFolders()
+        self._get_folders.folders.connect(self.on_folders)
+        self.run_get_folders.connect(self._get_folders.get)
+        self._get_folders.moveToThread(self._thread)
+        self.addItem("Loading...")
+
         self.currentIndexChanged.connect(self.on_select)
+
+    def on_folders(self, folders):
+        self.clear()
+        for f in folders:
+            self.addItem(f[0], f[0])
 
     def load(self):
         if variables.server:
-            for f in variables.server.get_folders():
-                self.addItem(f[0], f[0])
+            self._thread.start()
+            self.run_get_folders.emit()
 
 
     def on_select(self, idx):
         if variables.server:
             name = self.itemData(idx)
-            variables.server.select_folder(name)
-            self.setItemText(idx, f"{name} ({variables.server.get_message_count()})")
-            self.folder_selected.emit(name)
+            if name:
+                variables.server.select_folder(name)
+                self.setItemText(idx, f"{name} ({variables.server.get_message_count()})")
+                self.folder_selected.emit(name)
 
 class MailLayout(QVBoxLayout):
     """

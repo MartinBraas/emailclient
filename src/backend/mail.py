@@ -5,8 +5,10 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.header import decode_header
 from email import message_from_bytes
+from typing import Match
 from backend import variables as v
 from array import array as arr
+import re
 
 class Email:
     """
@@ -20,6 +22,12 @@ class Email:
         "Set the recipient of the email. Sender name is the name of the sender"
         self.msg['From'] = sender_name
         self.msg['To'] = recipient_email
+
+    def setCC(self, cc):
+        self.msg['Cc'] = cc
+
+    def setBCC(self, bcc):
+        self.msg['Bcc'] = bcc
 
     def setSubject(self, text):
         "Set the subjcet of the email"
@@ -39,6 +47,9 @@ class Email:
 
     def getString(self):
         return(self.msg.as_string())
+
+    def getMessage(self):
+        return self.msg
         
 
 class ServerEmail:
@@ -46,9 +57,12 @@ class ServerEmail:
     A class to encapsulate a single email from the server
     """
 
-    def __init__(self, msg: message.Message) -> None:
+    def __init__(self, mail_id, msg: message.Message) -> None:
+        self.mail_id = mail_id
         self.msg = msg
         self.from_ = ''
+        self.cc = ''
+        self.bcc = ''
         self.subject = ''
         self.body = ''
         self.content_disposition = ''
@@ -78,17 +92,19 @@ class ServerEmail:
                 self.from_ = self.from_.decode(encoding)
                 # v.reply_btn(self.from_) 
 
-    # def mr_true(mr_true: bool):
-    #     global mr_yay
-    #     mr_yay = mr_true
 
-    def is_read(self):
-        return True
+    def get_id(self):
+        return self.mail_id
 
-    def get_recipents(self):
+    def get_recipents(self, include_name = True):
         "Get the recipient of the email"
         # v.reply_btn(self.from_)
-        return self.from_
+        f = self.from_
+        if not include_name:
+            m: Match = re.search("<(.+)>", f)
+            if m:
+                f = m.group(1)
+        return f
 
     def get_subject(self):
         "Get the subjcet of the email"

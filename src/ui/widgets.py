@@ -1,12 +1,16 @@
 
 from typing import List
-from PySide2.QtCore import QModelIndex, QPoint, QRegExp, QSize, Signal, Qt
+from PySide2.QtCore import QModelIndex, QObject, QPoint, QRegExp, QSize, QThread, Signal, Qt
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PySide2.QtGui import QBrush, QColor, QDesktopServices, QFont, QPainter, QPen, QRegExpValidator, QStandardItem, QStandardItemModel
 from PySide2.QtWidgets import QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QPushButton, QSizePolicy, QStackedWidget, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextBrowser, QVBoxLayout, QWidget
 from backend import server, variables
+from backend import mail
 from backend.mail import ServerEmail
 from array import array as arr
+
+from ui.compose import ComposeData
+from ui.spinner import QtWaitingSpinner
 
 DataRole = Qt.UserRole + 1
 
@@ -16,6 +20,25 @@ class EmailList(QListView):
     """
 
     mail_clicked = Signal(ServerEmail)
+    load_more_signal = Signal(int, int)
+    class LoadMore(QObject):
+        loaded_mails = Signal(list)
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.fetching = False
+
+        def get(self, limit, load_from):
+            if not self.fetching:
+                print("getting mails", load_from, limit)
+                self.fetching = True
+                emails = []
+                try:
+                    if variables.server:
+                        emails = variables.server.fetch(limit=limit, start_from=load_from)
+                finally:
+                    self.loaded_mails.emit(emails)
+                    self.fetching = False
 
     def __init__(self, parent = None) -> None:
         super().__init__(parent=parent)
@@ -29,6 +52,21 @@ class EmailList(QListView):
         self._load_from = 0
         self.clicked.connect(self.on_mail_click)
         self.setMinimumWidth(self.sizeHintForColumn(0))
+        self.spin = QtWaitingSpinner(self, disableParentWhenSpinning=True)
+
+        self._thread = QThread(self)
+        self._load_more_action = self.LoadMore()
+        self._load_more_action.loaded_mails.connect(self.on_mails)
+        self._load_more_action.moveToThread(self._thread)
+        self.load_more_signal.connect(self._load_more_action.get)
+        self.verticalScrollBar().valueChanged.connect(self.on_scroll_value)
+
+    def on_scroll_value(self, v):
+        s = self.verticalScrollBar()
+        # check if scrolled more than 90%
+        if v > s.maximum() * 0.9:
+            self.load_more()
+
 
     def on_mail_click(self, idx):
         d = self._model.data(idx, DataRole)
@@ -36,17 +74,21 @@ class EmailList(QListView):
         print("mail clicked", d) 
         # variables.reply_btn(ServerEmail.get_recipents(d))
 
+    def on_mails(self, mails: List[ServerEmail]):
+        # print("received mails", mails)
+        for e in mails:
+            item = QStandardItem()
+            item.setCheckable(False)
+            item.setEditable(False)
+            item.setData(e, DataRole)
+            self._model.appendRow(item)
+            self._load_from += 1
+        self.spin.stop()
+
     def load_more(self, limit=20):
-        if variables.server:
-            items = []
-            emails: List[ServerEmail] = variables.server.fetch(limit=limit, start_from=self._load_from)
-            for e in emails:
-                item = QStandardItem()
-                item.setCheckable(False)
-                item.setEditable(False)
-                item.setData(e, DataRole)
-                items.append(item)
-                self._model.appendRow(item)
+        self._thread.start()
+        self.spin.start()
+        self.load_more_signal.emit(limit, self._load_from)
 
     def load(self):
         self._model.clear()
@@ -65,11 +107,11 @@ class MailItemDelagate(QStyledItemDelegate):
         self.model = model
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex) -> None:
-
         if index.column() == 0:
+            painter.save()
             servermail: ServerEmail = self.model.data(index, DataRole);
 
-            unread = not servermail.is_read()
+            unread = variables.server.is_unread(servermail.get_id())
 
             padding = 2
 
@@ -119,7 +161,7 @@ class MailItemDelagate(QStyledItemDelegate):
                 excerpt = excerpt[:int(display_width)-20] + "...";
 
             painter.drawText(QPoint(option.rect.x()+10, option.rect.y()+65), excerpt);  
-
+            painter.restore()
         else:
             return super().paint(painter, option, index)
 
@@ -138,6 +180,12 @@ class EmailOpen(QWidget):
     """
     Widget for reading an email
     """
+
+    class MarkReadAction(QObject):
+        mark_read = Signal(bytes)
+
+        def read_mail(self, mail_id):
+            variables.server.mark_read(mail_id)
     
     def __init__(self, parent = None) -> None:
         super().__init__(parent=parent)
@@ -151,14 +199,17 @@ class EmailOpen(QWidget):
         layout.addLayout(header_layout)
         self.reply_btn = QPushButton("Reply")
         self.reply_btn.setToolTip("Reply to Email")
+        self.reply_btn.setDisabled(True)
         header_layout.addWidget(self.reply_btn)
 
         self.forward_btn = QPushButton("Forward")
         self.forward_btn.setToolTip("Forward Email")
+        self.forward_btn.setDisabled(True)
         header_layout.addWidget(self.forward_btn)
         header_layout.insertStretch(-1, 1)
 
         self.delete_btn = QPushButton("Delete")
+        self.delete_btn.setDisabled(True)
         self.delete_btn.setToolTip("Delete Email")
         header_layout.addWidget(self.delete_btn)
 
@@ -181,7 +232,8 @@ class EmailOpen(QWidget):
         self.by.setText("")
         info_layout.addRow(self.title)
         info_layout.addRow("From:", self.by)
-        info_layout.addRow("CC:", QLabel(''))
+        info_layout.addRow("Cc:", QLabel(''))
+        info_layout.addRow("Bcc:", QLabel(''))
 
         hline = QFrame()
         hline.setFrameShape(QFrame.HLine)
@@ -199,27 +251,48 @@ class EmailOpen(QWidget):
         self.stack.addWidget(self.body_plain)
         layout.addWidget(self.stack)
 
+        self._current_mail = None
+        self._current_type = ''
+
+        self._mark_read_action = self.MarkReadAction()
+        self._thread = QThread(self)
+        self._mark_read_action.moveToThread(self._thread)
+        self._mark_read_action.mark_read.connect(self._mark_read_action.read_mail)
+        self._thread.start()
+
     def show_email(self, mail: ServerEmail):
+        self._current_mail = mail
         body = mail.get_body()
         self.by.setText(mail.get_recipents())
         self.title.setText(mail.get_subject())
         self.show_body(body, mail.get_content_type().lower())
+        self._mark_read_action.mark_read.emit(mail.get_id())
 
     def show_body(self, body, type = '', null=False):
+        self.forward_btn.setDisabled(False)
+        self.delete_btn.setDisabled(False)
+        self.reply_btn.setDisabled(False)
         try:
             if 'html' in type:
                 print("showing html")
                 self.body.setHtml(body)
                 self.stack.setCurrentIndex(0)
+                self._current_type = 'html'
             else:
                 print("showing plain")
                 self.body_plain.setText(body)
                 self.stack.setCurrentIndex(1)
+                self._current_type = 'plain'
         except ValueError:
             if not null:
                 self.show_body(body.replace(chr(0), ""), type, True)
             raise
 
+    def get_current_mail(self):
+        return self._current_mail
+
+    def get_current_type(self):
+        return self._current_type
 
 
 class EmailFolderSelector(QComboBox):
@@ -228,23 +301,46 @@ class EmailFolderSelector(QComboBox):
     """
 
     folder_selected = Signal(str)
+    run_get_folders = Signal()
+
+    class GetFolders(QObject):
+        folders = Signal(list)
+
+        def get(self):
+            print("getting folders")
+            l = variables.server.get_folders()
+            print(l)
+            self.folders.emit(l)
 
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
+        self._thread = QThread(self)
+        self._get_folders = self.GetFolders()
+        self._get_folders.folders.connect(self.on_folders)
+        self.run_get_folders.connect(self._get_folders.get)
+        self._get_folders.moveToThread(self._thread)
+        self.addItem("Loading...")
+
         self.currentIndexChanged.connect(self.on_select)
+
+    def on_folders(self, folders):
+        self.clear()
+        for f in folders:
+            self.addItem(f[0], f[0])
 
     def load(self):
         if variables.server:
-            for f in variables.server.get_folders():
-                self.addItem(f[0], f[0])
+            self._thread.start()
+            self.run_get_folders.emit()
 
 
     def on_select(self, idx):
         if variables.server:
             name = self.itemData(idx)
-            variables.server.select_folder(name)
-            self.setItemText(idx, f"{name} ({variables.server.get_message_count()})")
-            self.folder_selected.emit(name)
+            if name:
+                variables.server.select_folder(name)
+                self.setItemText(idx, f"{name} ({variables.server.get_message_count()})")
+                self.folder_selected.emit(name)
 
 class MailLayout(QVBoxLayout):
     """
@@ -296,21 +392,42 @@ class MailLayout(QVBoxLayout):
         self.email_folder_selector.load()
 
         
-class FolderWidget(QWidget):
+class FolderPage(QWidget):
     """
     Base class for page folder
     """
 
-    def __init__(self, parent = None) -> None:
-        super().__init__(parent)
+    def __init__(self, main_window) -> None:
+        super().__init__(main_window)
+        self.main_window = main_window
         self.mail_layout = MailLayout(self)
         self.email_open = self.mail_layout.email_open
 
-    def connect_buttons(self, main_window):
-        self.mail_layout.compose_btn.clicked.connect(main_window.compose_page)
-        # Why does this not work?
-        self.email_open.reply_btn.clicked.connect(main_window.compose_page)
-        self.email_open.forward_btn.clicked.connect(main_window.compose_page)
+    def connect_buttons(self):
+        self.mail_layout.compose_btn.clicked.connect(lambda: self.main_window.compose_page(None))
+        self.email_open.reply_btn.clicked.connect(self.on_reply)
+        self.email_open.forward_btn.clicked.connect(self.on_forward)
+
+    def on_reply(self):
+        current_mail = self.email_open.get_current_mail()
+        if current_mail:
+            data = ComposeData()
+            data.compose_type = "reply"
+            data.to = current_mail.get_recipents(include_name=False)
+            data.subject = "RE: " + current_mail.get_subject()
+            data.type = self.email_open.get_current_type()
+            self.main_window.compose_page(data)
+
+    def on_forward(self):
+        current_mail = self.email_open.get_current_mail()
+        if current_mail:
+            data = ComposeData()
+            data.compose_type = "forward"
+            data.subject =  "FW: " + current_mail.get_subject()
+            data.body = current_mail.get_body()
+            data.type = self.email_open.get_current_type()
+            self.main_window.compose_page(data)
+
         
 
     def load(self):

@@ -9,7 +9,7 @@ from ui.widgets import FolderPage
 
 
 def setIcon(widget):
-    appIcon = QIcon("../images/icon_png-removebg-preview.png")
+    appIcon = QIcon("images/icon_png-removebg-preview.png")
     widget.setWindowIcon(appIcon)
 class MainWindow(QMainWindow):
     

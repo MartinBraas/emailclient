@@ -1,6 +1,6 @@
 from PySide2.QtGui import QPixmap
-from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QLineEdit, QFormLayout
-from PySide2.QtCore import QThread, Signal, QObject
+from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget, QLineEdit, QFormLayout
+from PySide2.QtCore import QSize, QThread, Qt, Signal, QObject
 from backend import variables
 from backend import server as sv
 from backend import mail as em
@@ -16,6 +16,7 @@ class LoginAction(QThread):
     def __init__(self, page) -> None:
         super().__init__()
         self.page = page
+
 
     def run(self):
         print("logging in")
@@ -70,10 +71,27 @@ class LoginPage(QWidget):
     def __init__(self, parent = None):
         super().__init__(parent=parent)
 
-        layout = QHBoxLayout(self)
+        main_layout = QVBoxLayout(self)
+
+        img = QPixmap("images/logo.png")
+        img_lbl = QLabel()
+        img_lbl.setPixmap(img)
+        img_lbl.setScaledContents(True)
+        img_lbl.setMinimumWidth(img.width()*0.8)
+        img_lbl.setMinimumHeight(img.height()*0.8)
+        img_layout = QHBoxLayout()
+        img_layout.addWidget(img_lbl)
+        img_layout.insertStretch(0)
+        img_layout.insertStretch(-1)
+
+        main_layout.addLayout(img_layout)
+
+        layout = QHBoxLayout()
+        main_layout.addLayout(layout)
         v_layout = QVBoxLayout()
         form_layout = QFormLayout()
         layout.addLayout(v_layout)
+
 
         self.email = QLineEdit(self)
         self.email.setMinimumWidth(300)

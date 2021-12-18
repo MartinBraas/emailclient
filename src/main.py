@@ -4,7 +4,7 @@ from PySide2.QtWidgets import QApplication
 
 from ui.pages import MainWindow
 
-style_path = "style/Devsion.qss"
+style_path = "style/Hookmark.qss"
 
 def main():
     app = QApplication(sys.argv)

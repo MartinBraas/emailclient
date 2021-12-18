@@ -4,6 +4,7 @@ from PySide2.QtCore import QSize, QThread, Qt, Signal, QObject
 from backend import variables
 from backend import server as sv
 from backend import mail as em
+from ui.collapse import CollapeWidget
 from ui.spinner import QtWaitingSpinner
 from ui.widgets import QLineEditNumber
 import traceback
@@ -25,17 +26,21 @@ class LoginAction(QThread):
 
     def save_smtp(self):
         email = self.page.email.text()
+        advanced_imap = self.page.imap_serv.text()
+        advanced_imap_port = self.page.imap_port.text()
         advanced_smtp = self.page.smtp_serv.text()
-        advanced_port = self.page.port_w_tls.text()
+        advanced_port_tls = self.page.port_w_tls.text()
+        advanced_port = self.page.port.text()
         #Autodetection to be implemented after advanced page
         if "@gmail" in email:
-            v.choose_smtp(1, " ", 0)
+            v.choose_smtp(1, " ", 0, 0)
             v.choose_imap(1, " ", 0)
         elif "@outlook" in email or "@hotmail" in email or "@live" in email:
-            v.choose_smtp(0, " ", 0)
+            v.choose_smtp(0, " ", 0, 0)
             v.choose_imap(0, " ", 0)
         else:
-            v.choose_smtp(2, advanced_smtp, advanced_port)
+            v.choose_smtp(2, advanced_smtp, advanced_port_tls, advanced_port)
+            v.choose_imap(2, advanced_imap, advanced_imap_port)
 
         try:
             print("smtp server", v.smtp_serv)
@@ -97,8 +102,13 @@ class LoginPage(QWidget):
         self.email.setMinimumWidth(300)
         self.password = QLineEdit(self)
         self.password.setEchoMode(QLineEdit.Password)
+        self.imap_serv = QLineEdit(self)
+        self.imap_port = QLineEditNumber(self)
+        self.imap_port.setMinimumWidth(100)
         self.smtp_serv = QLineEdit(self)
         self.smtp_serv.setMinimumWidth(300)
+        self.port = QLineEditNumber(self)
+        self.port.setMinimumWidth(100)
         self.port_w_tls = QLineEditNumber(self)
         self.port_w_tls.setMinimumWidth(100)
 
@@ -112,8 +122,20 @@ class LoginPage(QWidget):
 
         form_layout.addRow("Email:", self.email)
         form_layout.addRow("Password", self.password)
-        form_layout.addRow("SMTP Server", self.smtp_serv)
-        form_layout.addRow("Port with TLS", self.port_w_tls)
+        v_layout.addLayout(form_layout)
+
+        advanced_widget = QWidget()
+        advanced_layout = QFormLayout(advanced_widget)
+
+        collapse = CollapeWidget(self, "Advanced")
+        collapse.addWidget(advanced_widget)
+        v_layout.addWidget(collapse)
+
+        advanced_layout.addRow("SMTP Server", self.smtp_serv)
+        advanced_layout.addRow("SMTP Port", self.port)
+        advanced_layout.addRow("SMTP Port with TLS", self.port_w_tls)
+        advanced_layout.addRow("IMAP Server", self.imap_serv)
+        advanced_layout.addRow("IMAP Port", self.imap_port)
 
         loginbtn_layout = QHBoxLayout()
         self.login_btn = QPushButton("Login")
@@ -121,7 +143,6 @@ class LoginPage(QWidget):
         loginbtn_layout.addWidget(self.login_btn)
         loginbtn_layout.insertStretch(0)
 
-        v_layout.addLayout(form_layout)
         v_layout.addLayout(loginbtn_layout)
         v_layout.addWidget(self.message_label)
         self.spin = QtWaitingSpinner(self, disableParentWhenSpinning=True)
@@ -151,15 +172,21 @@ class LoginPage(QWidget):
 
     def on_email_text_change(self, txt):
         smtp_serv = port_w_tls = port = None
+        imap_serv = imap_port = None
 
         if "@gmail" in txt:
-            smtp_serv, port_w_tls, port = v.choose_smtp(1, " ", 0)
-            v.choose_imap(1, " ", 0)
+            smtp_serv, port_w_tls, port = v.choose_smtp(1, " ", 0, 0)
+            imap_serv, imap_port = v.choose_imap(1, " ", 0)
         elif "@outlook" in txt or "@hotmail" in txt or "@live" in txt:
-            smtp_serv, port_w_tls, port = v.choose_smtp(0, " ", 0)
-            v.choose_imap(0, " ", 0)
+            smtp_serv, port_w_tls, port = v.choose_smtp(0, " ", 0, 0)
+            imap_serv, imap_port = v.choose_imap(0, " ", 0)
 
         if smtp_serv:
             self.smtp_serv.setPlaceholderText(smtp_serv)
             self.port_w_tls.setPlaceholderText(str(port_w_tls))
+            self.port.setPlaceholderText(str(port))
+
+        if imap_serv:
+            self.imap_serv.setPlaceholderText(imap_serv)
+            self.imap_port.setPlaceholderText(str(imap_port))
 

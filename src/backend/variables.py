@@ -12,7 +12,7 @@ imap_port = 0
 server = None # active server instance
 
 # State machine function, for choosing SMTP server
-def choose_smtp(number, advanced_smtp, advanced_port):
+def choose_smtp(number, advanced_smtp, advanced_port_tls, advanced_port):
     global smtp_serv, port_w_tls, port
 
     ## DISABLE SMTP FOR NOW BECAUSE https://github.com/rnwood/smtp4dev
@@ -28,8 +28,8 @@ def choose_smtp(number, advanced_smtp, advanced_port):
         port = 25
     elif number == 2:
         smtp_serv = advanced_smtp
-        port_w_tls = advanced_port
-        port = 25
+        port_w_tls = advanced_port_tls
+        port = advanced_port
     # print("SMTP server: ", smtp_serv, " // SMTP Port: ", port_w_tls)
     return smtp_serv, port_w_tls, port
 

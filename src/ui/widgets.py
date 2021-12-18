@@ -1,13 +1,14 @@
 
 from typing import List
-from PySide2.QtCore import QModelIndex, QObject, QPoint, QRegExp, QSize, QThread, Signal, Qt
+from PySide2.QtCore import QModelIndex, QObject, QPoint, QRegExp, QSize, QStandardPaths, QThread, Signal, Qt
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PySide2.QtGui import QBrush, QColor, QDesktopServices, QFont, QPainter, QPen, QRegExpValidator, QStandardItem, QStandardItemModel
-from PySide2.QtWidgets import QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QPushButton, QSizePolicy, QStackedWidget, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextBrowser, QVBoxLayout, QWidget
+from PySide2.QtWidgets import QComboBox, QFormLayout, QFrame, QHBoxLayout, QLabel, QLineEdit, QListView, QListWidget, QListWidgetItem, QMessageBox, QPushButton, QSizePolicy, QStackedWidget, QStyle, QStyleOptionViewItem, QStyledItemDelegate, QTextBrowser, QVBoxLayout, QWidget
 from backend import server, variables
 from backend import mail
 from backend.mail import ServerEmail
 from array import array as arr
+import os
 
 from ui.compose import ComposeData
 from ui.spinner import QtWaitingSpinner
@@ -95,6 +96,11 @@ class EmailList(QListView):
         self._load_from = 0
         self.load_more()
 
+    def remove_currently_selected(self):
+        self._model.takeRow(self.currentIndex().row())
+        d = self._model.data(self.currentIndex(), DataRole)
+        self.mail_clicked.emit(d)
+
 class MailItemDelagate(QStyledItemDelegate):
     """
     Draws a single mail item
@@ -180,12 +186,40 @@ class EmailOpen(QWidget):
     """
     Widget for reading an email
     """
+    mail_deleted = Signal()
+    mail_read = Signal()
 
-    class MarkReadAction(QObject):
+    class MailAction(QObject):
         mark_read = Signal(bytes)
+        mark_unread = Signal(bytes)
+        mark_deleted = Signal(bytes)
+        attachment = Signal(str, bytes)
+        attachment_downloaded = Signal(str)
 
         def read_mail(self, mail_id):
             variables.server.mark_read(mail_id)
+
+        def delete_mail(self, mail_id):
+            variables.server.mark_deleted(mail_id)
+
+        def unread_mail(self, mail_id):
+            variables.server.mark_unread(mail_id)
+
+        def download_attachment(self, name, content):
+            print("downliading", name)
+            download_folder = QStandardPaths.writableLocation(QStandardPaths.DownloadLocation)
+            attempt = 1
+            p = os.path.join(download_folder, name)
+            # if already exist, generate random name
+            while os.path.exists(p):
+                p = os.path.join(download_folder, name + f' ({attempt})')
+                attempt += 1
+
+            with open(p, "wb") as f:
+                f.write(content)
+            print("finished", p)
+            self.attachment_downloaded.emit(p)
+
     
     def __init__(self, parent = None) -> None:
         super().__init__(parent=parent)
@@ -208,10 +242,19 @@ class EmailOpen(QWidget):
         header_layout.addWidget(self.forward_btn)
         header_layout.insertStretch(-1, 1)
 
+
+        self.mark_unread_btn = QPushButton("Mark as unread")
+        self.mark_unread_btn.setDisabled(True)
+        self.mark_unread_btn.setToolTip("Mark as Unread")
+        header_layout.addWidget(self.mark_unread_btn)
+        self.mark_unread_btn.clicked.connect(self.on_mark_unread)
+
+
         self.delete_btn = QPushButton("Delete")
         self.delete_btn.setDisabled(True)
         self.delete_btn.setToolTip("Delete Email")
         header_layout.addWidget(self.delete_btn)
+        self.delete_btn.clicked.connect(self.on_delete)
 
         
         hline = QFrame()
@@ -232,8 +275,6 @@ class EmailOpen(QWidget):
         self.by.setText("")
         info_layout.addRow(self.title)
         info_layout.addRow("From:", self.by)
-        info_layout.addRow("Cc:", QLabel(''))
-        info_layout.addRow("Bcc:", QLabel(''))
 
         hline = QFrame()
         hline.setFrameShape(QFrame.HLine)
@@ -251,27 +292,72 @@ class EmailOpen(QWidget):
         self.stack.addWidget(self.body_plain)
         layout.addWidget(self.stack)
 
+        self.attachments = QListWidget()
+        self.attachments.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.attachments.setMaximumHeight(100)
+        self.attachments.setVisible(False)
+        self.attachments.itemDoubleClicked.connect(self.download_attachment)
+        layout.addWidget(self.attachments)
+
         self._current_mail = None
+        self._current_attachments = []
         self._current_type = ''
 
-        self._mark_read_action = self.MarkReadAction()
+        self._mark_read_action = self.MailAction()
         self._thread = QThread(self)
         self._mark_read_action.moveToThread(self._thread)
         self._mark_read_action.mark_read.connect(self._mark_read_action.read_mail)
+        self._mark_read_action.mark_deleted.connect(self._mark_read_action.delete_mail)
+        self._mark_read_action.mark_unread.connect(self._mark_read_action.unread_mail)
+        self._mark_read_action.attachment.connect(self._mark_read_action.download_attachment)
+        self._mark_read_action.attachment_downloaded.connect(self.on_attachment_downloaded)
         self._thread.start()
 
+    def download_attachment(self, item: QListWidgetItem):
+        name = item.text()
+        content = item.data(Qt.UserRole+1)
+        print("emitting", name, type(content))
+        self._mark_read_action.attachment.emit(name, content)
+
+    def on_attachment_downloaded(self, p):
+        print("downloaded", p)
+        msg = QMessageBox.information(self, "Attachment download", "Attachment has been downloaded to: " + p, QMessageBox.Ok)
+
+    def on_delete(self):
+        if self._current_mail:
+            self._mark_read_action.mark_deleted.emit(self._current_mail.get_id())
+        self.mail_deleted.emit()
+        
+    def on_mark_unread(self):
+        if self._current_mail:
+            self._mark_read_action.mark_unread.emit(self._current_mail.get_id())
+            self.mail_read.emit()
+
+
     def show_email(self, mail: ServerEmail):
+        self.attachments.clear()
         self._current_mail = mail
         body = mail.get_body()
         self.by.setText(mail.get_recipents())
         self.title.setText(mail.get_subject())
         self.show_body(body, mail.get_content_type().lower())
         self._mark_read_action.mark_read.emit(mail.get_id())
+        self.mail_read.emit()
+        self._current_attachments = mail.get_attachment()
+        if self._current_attachments:
+            self.attachments.setVisible(True)
+        else:
+            self.attachments.setVisible(False)
+        for name, content in self._current_attachments:
+            t = QListWidgetItem(name, self.attachments)
+            t.setData(Qt.UserRole+1, content)
+            t.setData(Qt.DisplayRole, name)
 
     def show_body(self, body, type = '', null=False):
         self.forward_btn.setDisabled(False)
         self.delete_btn.setDisabled(False)
         self.reply_btn.setDisabled(False)
+        self.mark_unread_btn.setDisabled(False)
         try:
             if 'html' in type:
                 print("showing html")
@@ -383,6 +469,7 @@ class MailLayout(QVBoxLayout):
 
         self.email_open = EmailOpen()
         self.email_list.mail_clicked.connect(self.email_open.show_email)
+        self.email_open.mail_deleted.connect(self.email_list.remove_currently_selected)
         layout.addWidget(self.email_open)
 
     def on_folder_selected(self, f):

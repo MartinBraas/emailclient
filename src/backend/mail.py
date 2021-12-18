@@ -57,7 +57,7 @@ class ServerEmail:
     A class to encapsulate a single email from the server
     """
 
-    def __init__(self, mail_id, msg: message.Message) -> None:
+    def __init__(self, mail_id, msg: message.EmailMessage) -> None:
         self.mail_id = mail_id
         self.msg = msg
         self.from_ = ''
@@ -115,7 +115,6 @@ class ServerEmail:
         if self.body:
             return self.body
         msg = self.msg
-        self.content_disposition = ''
         # if the email message is multipart
         if msg.is_multipart():
             # iterate over email parts
@@ -151,7 +150,12 @@ class ServerEmail:
         return self.content_disposition
         
     def get_attachment(self):
-        return 
+        data = list(self.msg.iter_attachments())
+        attachments = []
+        for a in data:
+            attachments.append((a.get_filename(), a.get_payload(decode=True)))
+            
+        return attachments
     
     def get_date(self):
         msg = self.msg

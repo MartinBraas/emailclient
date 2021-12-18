@@ -1,3 +1,4 @@
+from email.message import EmailMessage
 import smtplib
 import imaplib
 import email
@@ -94,7 +95,7 @@ class Server:
         for response in msg:
             if isinstance(response, tuple):
                 # parse a bytes email into a message object
-                msg = email.message_from_bytes(response[1])
+                msg = email.message_from_bytes(response[1], _class=EmailMessage)
                 return ServerEmail(mail_id, msg)
 
     def get_folders(self) -> List[Tuple]:
@@ -127,6 +128,24 @@ class Server:
         if mail_id in self._unread_messages:
             self._unread_messages.remove(mail_id)
         self.imap.store(mail_id, '+FLAGS', '\Seen')
+
+    def mark_unread(self, mail_id):
+        print("marking unread", mail_id)
+        self.imap.store(mail_id, '-FLAGS', '\Seen')
+        self._unread_messages.add(mail_id)
+
+    def get_trash_folder(self):
+        for f in self._folders:
+            if b'trash' in f[1].lower():
+                return f[1].decode().split('"/')[0]
+
+
+    def mark_deleted(self, mail_id):
+        f = self.get_trash_folder()
+        print("trash folder:", f)
+        if f:
+            self.imap.copy(mail_id, f)
+            self.imap.store(mail_id, "+FLAGS", "\\Deleted")
 
     def send(self, mail: Email):
         "Send email through mailserver"

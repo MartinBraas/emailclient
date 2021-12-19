@@ -13,18 +13,7 @@ Launching the program may prompt Windows to prohibit launching at first. If this
 Should you want to run the program on other operating systems, we recommend not using this executable but instead follow the instructions for installing the necessary packages and launching the program using Python 3.9
 
 ## Prerequisites
-These are the packages needed to run the application:
-- Python
-  - [Download](https://www.python.org/downloads/)
-  - [Installation guide](https://www.tutorialspoint.com/how-to-install-python-in-windows)
-
-- PySide2
-  - [Installation guide](https://pypi.org/project/PySide2/)
-  - When using Anaconda, use 
-   ```
-   conda install -c conda-forge pyside2
-   ```
-   If the solving of the enviroment takes a long time, check out [Usage Issues](#usage-issues).
+The prerequisites for running Skrumping Email Client in a terminal can be found in the `requirements.txt` file. To install the necessarry packages and libraries, simply  follow the installation guide below
 
 ## Installation and Launching using Python
 To install the Skrumpen Email Client, download [this repository](https://github.com/MartinBraas/emailclient)
@@ -32,7 +21,7 @@ To install the Skrumpen Email Client, download [this repository](https://github.
 
 Or clone into a folder with
 ```
-git clone https://github.com/MartinBraas/emailclient
+git clone https://github.com/MartinBraas/emailclient.git
 ```
 
 Downlod required packages with
@@ -61,16 +50,10 @@ Gmail-specific problems:
 Problems for Anaconda users:
 - Sometimes when installing PySide2, the current Anaconda enviroment has too many packages installed by default, which makes the enviroment solving take a very long time. To solve this, use `conda create -n foo -c conda-forge pyside2` to create a new Anaconda enviroment and install it there.
 
-## Useful links
-
-https://www.youtube.com/watch?v=mWZYn5I_jkY
-
-
-## Install packages
-
-`pip install -r requirements.txt`
-
 ## Testing
 
-To run tests:
-`pytest`
+To run tests, use
+```
+pytest
+```
+in a terminal

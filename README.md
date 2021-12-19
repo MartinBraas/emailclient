@@ -30,9 +30,19 @@ Or clone into a folder with
 git clone https://github.com/MartinBraas/emailclient
 ```
 
+Downlod required packages with
+```
+pip install -r requirements.txt
+```
+
 Once downloaded, navigate to the `emailclient/src` folder and enter
 ```
 python main.py
+```
+
+Or create an executable with
+```
+pyinstaller main.spec
 ```
 
 ## Usage

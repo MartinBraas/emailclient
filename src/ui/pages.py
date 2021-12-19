@@ -2,14 +2,14 @@ from PySide2.QtCore import Slot
 from PySide2.QtGui import QCloseEvent, QIcon, QPixmap
 from PySide2.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel
 from ui.compose import ComposeData, ComposePage
-import sys
+from backend import utils
 
 from ui.login import LoginPage
 from ui.widgets import FolderPage
 
 
 def setIcon(widget):
-    appIcon = QIcon("images/icon_png-removebg-preview.png")
+    appIcon = QIcon(utils.resource_path("images/icon_png-removebg-preview.png"))
     widget.setWindowIcon(appIcon)
 class MainWindow(QMainWindow):
     

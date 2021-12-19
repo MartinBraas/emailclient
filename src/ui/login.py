@@ -19,12 +19,12 @@ class LoginAction(QThread):
         self.page = page
 
 
-    def run(self):
+    def run(self): # pragma: no cover
         print("logging in")
         if self.save_smtp():
             self.save_login()
 
-    def save_smtp(self):
+    def save_smtp(self): # pragma: no cover
         email = self.page.email.text()
         advanced_imap = self.page.imap_serv.text()
         advanced_imap_port = self.page.imap_port.text()
@@ -54,7 +54,7 @@ class LoginAction(QThread):
             self.login_result.emit(False, msg)
             return False
 
-    def save_login(self):
+    def save_login(self): # pragma: no cover
         email = self.page.email.text()
         password = self.page.password.text()
         v.load_login(email, password)

@@ -12,7 +12,7 @@ imap_port = 0
 server = None # active server instance
 
 # State machine function, for choosing SMTP server
-def choose_smtp(number, advanced_smtp, advanced_port_tls, advanced_port):
+def choose_smtp(number, advanced_smtp, advanced_port_tls, advanced_port): # pragma: no cover
     global smtp_serv, port_w_tls, port
 
     ## DISABLE SMTP FOR NOW BECAUSE https://github.com/rnwood/smtp4dev
@@ -33,7 +33,7 @@ def choose_smtp(number, advanced_smtp, advanced_port_tls, advanced_port):
     # print("SMTP server: ", smtp_serv, " // SMTP Port: ", port_w_tls)
     return smtp_serv, port_w_tls, port
 
-def choose_imap(number, advanced_imap, advanced_im_port):
+def choose_imap(number, advanced_imap, advanced_im_port): # pragma: no cover
     global imap_serv, imap_port
     if number == 0:
         imap_serv = "imap-mail.outlook.com"
@@ -47,7 +47,7 @@ def choose_imap(number, advanced_imap, advanced_im_port):
     return imap_serv, imap_port
 
 # Function for passing login credentials from login UI page
-def load_login(email_adr, email_pwd):
+def load_login(email_adr, email_pwd): # pragma: no cover
     global email_adress, email_password
     email_adress = email_adr
     email_password = email_pwd

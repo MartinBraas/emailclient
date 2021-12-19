@@ -1,7 +1,7 @@
 from PySide2 import QtGui, QtCore, QtWidgets
 
 
-class CollapeWidget(QtWidgets.QFrame):
+class CollapeWidget(QtWidgets.QFrame): 
     def __init__(self, parent=None, title=None):
         QtWidgets.QFrame.__init__(self, parent=parent)
 

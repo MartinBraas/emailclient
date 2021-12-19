@@ -1,4 +1,6 @@
 pytest
-Pillow
+pytest-qt
+pytest-cov
+pytest-mock
 pyside2
 pyinstaller

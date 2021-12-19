@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from email.header import decode_header
 from email import message_from_bytes
 from typing import Match
-from backend import variables as v
+from . import variables as v
 from array import array as arr
 import re
 
@@ -52,12 +52,12 @@ class Email:
         return self.msg
         
 
-class ServerEmail:
+class ServerEmail:  # pragma: no cover
     """
     A class to encapsulate a single email from the server
     """
 
-    def __init__(self, mail_id, msg: message.EmailMessage) -> None:
+    def __init__(self, mail_id, msg: message.EmailMessage) -> None: 
         self.mail_id = mail_id
         self.msg = msg
         self.from_ = ''
@@ -70,7 +70,7 @@ class ServerEmail:
 
         self._parse()
 
-    def _parse(self):
+    def _parse(self): # pragma: no cover
         msg = self.msg
 
         if msg["Subject"]:

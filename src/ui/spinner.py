@@ -31,7 +31,7 @@ from PySide2.QtCore import QTimer, Qt, QRect
 from PySide2.QtGui import  QColor, QPainter
 from PySide2.QtWidgets import QWidget
 
-class QtWaitingSpinner(QWidget):
+class QtWaitingSpinner(QWidget): # pragma: no cover
     def __init__(self, parent, centerOnParent=True, disableParentWhenSpinning=False, modality=Qt.NonModal):
         super().__init__(parent)
 

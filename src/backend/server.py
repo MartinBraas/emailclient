@@ -2,8 +2,7 @@ from email.message import EmailMessage
 import smtplib
 import imaplib
 import email
-from backend import mail
-from backend.mail import ServerEmail, Email
+from .mail import ServerEmail, Email
 from typing import List, Tuple
 class Server:
     """
@@ -25,6 +24,7 @@ class Server:
         self._folders = []
         self._message_count = 0
         self._unread_messages = set()
+        self._connected = False
 
     def connect(self):
         "Connect to the mail server"
@@ -37,12 +37,15 @@ class Server:
             self.server.starttls()
             self.server.ehlo()
 
+        self._connected = True
+
     def login(self, email, password):
         "Log into the mail server"
-        self.server.login(email, password)
+        if self._connected:
+            self.server.login(email, password)
 
-        if self.imap:
-            self.imap.login(email, password)
+            if self.imap:
+                self.imap.login(email, password)
 
     def select_folder(self, folder: str):
         print("selecting folder", folder)
@@ -127,11 +130,11 @@ class Server:
     def mark_read(self, mail_id):
         if mail_id in self._unread_messages:
             self._unread_messages.remove(mail_id)
-        self.imap.store(mail_id, '+FLAGS', '\Seen')
+        self.imap.store(mail_id, '+FLAGS', r'\Seen')
 
     def mark_unread(self, mail_id):
         print("marking unread", mail_id)
-        self.imap.store(mail_id, '-FLAGS', '\Seen')
+        self.imap.store(mail_id, '-FLAGS', r'\Seen')
         self._unread_messages.add(mail_id)
 
     def get_trash_folder(self):
@@ -140,23 +143,21 @@ class Server:
                 return f[1].decode().split('"/')[0]
 
 
-    def mark_deleted(self, mail_id):
+    def mark_deleted(self, mail_id):  # pragma: no cover
         f = self.get_trash_folder()
         print("trash folder:", f)
         if f:
             self.imap.copy(mail_id, f)
-            self.imap.store(mail_id, "+FLAGS", "\\Deleted")
+            self.imap.store(mail_id, "+FLAGS", r"\Deleted")
+            self.imap.expunge()
 
     def send(self, mail: Email):
         "Send email through mailserver"
         self.server.send_message(mail.getMessage())
 
-    def quit(self):
+    def quit(self):  # pragma: no cover
         "Quit the server"
         self.server.quit()
-
-        # #temp solution
-        # if (imap_gear == 1):
-        #     self.imap.close()
-        #     self.imap.logout()
+        self.imap.close()
+        self.imap.logout()
 

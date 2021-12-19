@@ -45,7 +45,7 @@ Running the program for the first time:
 
 Gmail-specific problems:
 - For Gmail users, you need to allow 'acces from less secure apps', which can be read about [here](https://support.google.com/a/answer/6260879?hl=en)
-- When logging in to the client for the first time, you might be prompted to enter a 'app-specific password'. Instructions on how to do so is found [here](https://support.google.com/accounts/answer/185833?hl=en). This password will need to be used every time when logging into the client.
+- When logging in to the client for the first time, you might be prompted to enter a 'app-specific password'. Instructions on how to do so is found [here](https://support.google.com/accounts/answer/185833?hl=en). Save the password somewhere safe, as this password will need to be used every time when logging into the client.
 
 Problems for Anaconda users:
 - Sometimes when installing PySide2, the current Anaconda enviroment has too many packages installed by default, which makes the enviroment solving take a very long time. To solve this, use `conda create -n foo -c conda-forge pyside2` to create a new Anaconda enviroment and install it there.

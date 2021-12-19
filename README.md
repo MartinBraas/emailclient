@@ -6,6 +6,11 @@
 The Skrumpen Email Client is an email client for recieving, viewing and sending mails. The application supports email-accounts from a variety of popular providers and works on most systems. The features supported by the application are the basic rudimentary email-functions such as reply/forward etc.
 
 # Getting Started
+Included in this repository is a executable file 'Skrumpem Email Client.exe' which is a launchable program for Windows 10 - meaning no further installation is required. Simply download this repository and launch the program. 
+
+Launching the program may prompt Windows to prohibit launching at first. If this happens, a window with the text 'Windows protected your PC' will pop up. Click 'More info' and 'Run anyway' to launch the program. Should this continue to happen, a guide for turning off Windows SmartScreen can be found [here](https://www.ghacks.net/2012/11/03/turn-off-windows-protected-your-pc-windows-smartscreen/).
+
+Should you want to run the program on other operating systems, we recommend not using this executable but instead follow the instructions for installing the necessary packages and launching the program using Python 3.9
 
 ## Prerequisites
 These are the packages needed to run the application:
@@ -21,8 +26,8 @@ These are the packages needed to run the application:
    ```
    If the solving of the enviroment takes a long time, check out [Usage Issues](#usage-issues).
 
-## Installation and Launching
-To install the Skrumpen Email Client, download the repository from [here.](https://github.com/MartinBraas/emailclient)
+## Installation and Launching using Python
+To install the Skrumpen Email Client, download [this repository](https://github.com/MartinBraas/emailclient)
 
 
 Or clone into a folder with
@@ -38,11 +43,6 @@ pip install -r requirements.txt
 Once downloaded, navigate to the `emailclient/src` folder and enter
 ```
 python main.py
-```
-
-Or create an executable with
-```
-pyinstaller main.spec
 ```
 
 ## Usage
